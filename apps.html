@@ -335,26 +335,28 @@
             <!-- VUE 3 : ÉDITEUR DE DOCUMENT -->
             <div id="view-editor" class="hidden flex-1 flex flex-col lg:flex-row gap-4 lg:gap-8 p-4 lg:p-8 pb-24 lg:pb-8 overflow-y-auto lg:overflow-hidden h-full relative">
                 
-                <!-- BOUTON SAUVEGARDE FLOTTANT (MOBILE UNIQUEMENT, VISIBLE EN MODE APERÇU) -->
-                <button onclick="generatePDF()" id="fab-save" class="md:hidden fixed bottom-24 right-4 bg-[#0a1b4f] text-white w-14 h-14 rounded-full shadow-[0_8px_30px_rgb(10,27,79,0.4)] flex items-center justify-center z-[60] active:scale-90 transition-transform hidden">
+                <!-- BOUTON SAUVEGARDE FLOTTANT (MOBILE UNIQUEMENT, VISIBLE EN MODE APERÇU ET EDITION) -->
+                <!-- Ce bouton a été repensé pour être grand et parfaitement visible -->
+                <button onclick="generatePDF()" id="fab-save" class="md:hidden fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-[#0a1b4f] text-white px-8 py-3.5 rounded-full shadow-[0_10px_30px_rgba(10,27,79,0.4)] flex items-center justify-center gap-3 z-[60] active:scale-95 transition-all w-[85%] max-w-sm hidden">
                     <i data-lucide="file-down" class="w-6 h-6 generate-icon"></i>
                     <i data-lucide="loader-2" class="w-6 h-6 animate-spin hidden loading-icon"></i>
+                    <span class="font-bold text-[15px] whitespace-nowrap btn-text">Générer le PDF</span>
                 </button>
 
                 <!-- SECTION FORMULAIRE -->
-                <section id="editor-section" class="hidden lg:flex w-full lg:w-5/12 flex-col gap-6 lg:overflow-y-auto pr-2 no-print custom-scrollbar flex-shrink-0 pb-10">
+                <section id="editor-section" class="hidden lg:flex w-full lg:w-5/12 flex-col gap-6 lg:overflow-y-auto pr-2 no-print custom-scrollbar flex-shrink-0 pb-28">
                     
                     <div class="md:hidden bg-blue-50 text-blue-800 p-4 rounded-xl border border-blue-100 flex items-start gap-3">
                         <i data-lucide="info" class="w-5 h-5 shrink-0 mt-0.5"></i>
-                        <p class="text-sm">Remplissez les informations ci-dessous, puis appuyez sur <strong>Aperçu</strong> en bas pour voir et télécharger le PDF.</p>
+                        <p class="text-sm">Remplissez les informations ci-dessous, puis appuyez sur <strong>Générer le PDF</strong> pour télécharger votre document.</p>
                     </div>
 
                     <!-- Type Doc -->
                     <div class="bg-white p-5 md:p-6 rounded-xl border border-slate-200 shadow-sm">
                         <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider"><i data-lucide="file-question" class="w-4 h-4"></i> Type de document</h2>
                         <div class="flex gap-4">
-                            <button id="type-quote" class="type-btn active flex-1 py-3 rounded-lg border-2 font-bold transition-all text-xs">DEVIS</button>
-                            <button id="type-invoice" class="type-btn flex-1 py-3 rounded-lg border-2 font-bold transition-all text-xs">FACTURE</button>
+                            <button id="type-quote" onclick="switchDocType('quote')" class="type-btn active flex-1 py-3 rounded-lg border-2 font-bold transition-all text-xs">DEVIS</button>
+                            <button id="type-invoice" onclick="switchDocType('invoice')" class="type-btn flex-1 py-3 rounded-lg border-2 font-bold transition-all text-xs">FACTURE</button>
                         </div>
                     </div>
 
@@ -421,18 +423,10 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Guidance Mobile : Bouton vers Aperçu -->
-                    <div class="md:hidden mt-2 mb-8">
-                        <button onclick="setUIMode('double')" class="w-full bg-slate-800 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform">
-                            Suivant : Voir l'aperçu <i data-lucide="arrow-right" class="w-5 h-5"></i>
-                        </button>
-                    </div>
-
                 </section>
 
                 <!-- SECTION CHAT -->
-                <section id="chat-section" class="hidden w-full max-w-2xl mx-auto flex flex-col bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden no-print h-full flex-shrink-0">
+                <section id="chat-section" class="hidden w-full max-w-2xl mx-auto flex flex-col bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden no-print h-[calc(100vh-180px)] lg:h-full flex-shrink-0">
                     <div class="bg-[#0a1b4f] p-4 flex items-center gap-3 shrink-0">
                         <div class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center shadow-inner"><i data-lucide="bot" class="text-white w-6 h-6"></i></div>
                         <div><h3 class="text-white font-bold text-sm">Assistant Avencia</h3><p class="text-white/50 text-[10px] italic">Je prépare votre document avec vous.</p></div>
@@ -454,7 +448,7 @@
                 </section>
 
                 <!-- SECTION APERÇU -->
-                <section id="preview-section" class="w-full lg:w-7/12 overflow-x-hidden overflow-y-auto lg:overflow-auto no-print-scrollbar bg-slate-200/50 p-2 md:p-4 rounded-xl custom-scrollbar flex-shrink-0">
+                <section id="preview-section" class="w-full lg:w-7/12 overflow-x-hidden overflow-y-auto lg:overflow-auto no-print-scrollbar bg-slate-200/50 p-2 md:p-4 rounded-xl custom-scrollbar flex-shrink-0 pb-28">
                     <div class="preview-wrapper">
                         <div id="invoice-preview" class="bg-white shadow-xl border border-slate-200 shadow-slate-300"></div>
                     </div>
@@ -479,6 +473,9 @@
 
         </div>
     </div>
+    
+    <!-- Zone cachée pour impression parfaite -->
+    <div id="pdf-render-zone" style="position: absolute; top: -9999px; left: -9999px;"></div>
 
     <script>
         /** Protection **/
@@ -486,7 +483,7 @@
             if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && ['I','C','J'].includes(String.fromCharCode(e.keyCode))) || (e.ctrlKey && ['U','S'].includes(String.fromCharCode(e.keyCode)))) return false;
         };
 
-        // --- ÉTAT ---
+        // --- ÉTAT GLOBAL ---
         let currentUser = JSON.parse(localStorage.getItem('avencia_user')) || null;
         let appHistory = JSON.parse(localStorage.getItem('avencia_docs')) || [];
 
@@ -500,7 +497,166 @@
             vatRate: 0, bankInfo: "",
         };
 
-        // FONCTIONS GLOBALES
+        // --- FONCTIONS CLÉS ---
+        
+        function switchDocType(type) {
+            state.docType = type;
+            
+            // Mise à jour visuelle des boutons
+            const tQuote = document.getElementById('type-quote');
+            const tInvoice = document.getElementById('type-invoice');
+            if(tQuote) {
+                if(type === 'quote') tQuote.classList.add('active');
+                else tQuote.classList.remove('active');
+            }
+            if(tInvoice) {
+                if(type === 'invoice') tInvoice.classList.add('active');
+                else tInvoice.classList.remove('active');
+            }
+            
+            // Changement des textes
+            const tPrefix = document.querySelector('.text-prefix');
+            if(tPrefix) tPrefix.innerText = type === 'quote' ? "N° Devis" : "N° Facture";
+            
+            // Mise à jour du numéro
+            state.meta.number = (type === 'quote' ? 'DEV-' : 'FAC-') + Date.now().toString().slice(-4);
+            const metaNum = document.getElementById('meta-number');
+            if(metaNum) metaNum.value = state.meta.number;
+            
+            renderPreview();
+        }
+
+        function setUIMode(mode) {
+            state.isMode = mode;
+            
+            // Activer/Désactiver les boutons
+            document.querySelectorAll('.mode-btn').forEach(b => {
+                if (b.id === `mode-${mode}`) b.classList.add('active');
+                else b.classList.remove('active');
+            });
+            document.querySelectorAll('.mob-nav-btn').forEach(b => {
+                if (b.id === `mob-mode-${mode}`) b.classList.add('active');
+                else b.classList.remove('active');
+            });
+
+            const editorEl = document.getElementById('editor-section');
+            const previewEl = document.getElementById('preview-section');
+            const chatEl = document.getElementById('chat-section');
+            const fabSave = document.getElementById('fab-save');
+
+            if (!editorEl || !previewEl || !chatEl) return;
+
+            // Logique responsive
+            if (mode === 'double') {
+                // Sur PC : Divisé / Sur Mobile : Que l'aperçu
+                editorEl.className = "hidden lg:flex w-full lg:w-5/12 flex-col gap-6 lg:overflow-y-auto pr-2 no-print custom-scrollbar flex-shrink-0 pb-10";
+                previewEl.className = "w-full lg:w-7/12 overflow-x-hidden overflow-y-auto lg:overflow-auto no-print-scrollbar bg-slate-200/50 p-2 md:p-4 rounded-xl custom-scrollbar flex-shrink-0 pb-28";
+                previewEl.classList.remove('hidden');
+                chatEl.classList.add('hidden');
+                if (fabSave && window.innerWidth < 1024) fabSave.classList.remove('hidden'); // Afficher le gros bouton
+            } else if (mode === 'easy') {
+                // Formulaire uniquement
+                editorEl.className = "w-full max-w-3xl mx-auto flex flex-col gap-6 no-print pb-28";
+                editorEl.classList.remove('hidden');
+                previewEl.classList.add('hidden');
+                chatEl.classList.add('hidden');
+                if (fabSave && window.innerWidth < 1024) fabSave.classList.remove('hidden'); // Toujours accessible
+            } else if (mode === 'chat') {
+                // Chat uniquement
+                editorEl.classList.add('hidden');
+                previewEl.classList.add('hidden');
+                chatEl.classList.remove('hidden');
+                if (fabSave) fabSave.classList.add('hidden'); // Caché dans le chat
+                resetChat();
+            }
+        }
+
+        // --- GÉNÉRATION PDF INFAILLIBLE ---
+        async function generatePDF() {
+            if (state.isGenerating) return;
+            state.isGenerating = true;
+            
+            // Animation du bouton
+            document.querySelectorAll('.generate-icon, .btn-text').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.loading-icon').forEach(el => el.classList.remove('hidden'));
+
+            try {
+                const previewElement = document.getElementById('invoice-preview');
+                
+                // CRUCIAL: Création d'un clone parfait caché en dehors de l'écran
+                // Cela empêche html2canvas de subir les bugs du 'zoom' CSS ou du 'overflow: hidden' sur mobile.
+                const cloneContainer = document.createElement('div');
+                cloneContainer.innerHTML = previewElement.innerHTML;
+                
+                // Forcer une taille A4 stricte au clone
+                cloneContainer.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 794px !important;
+                    min-height: 1123px !important;
+                    background-color: white;
+                    margin: 0;
+                    padding: 0;
+                    z-index: -9999;
+                    pointer-events: none;
+                `;
+                document.body.appendChild(cloneContainer);
+
+                // Laisser le temps au navigateur de dessiner le clone
+                await new Promise(resolve => setTimeout(resolve, 300));
+
+                const canvas = await html2canvas(cloneContainer, {
+                    scale: 2, 
+                    useCORS: true, 
+                    allowTaint: true,
+                    logging: false,
+                    windowWidth: 794,
+                    windowHeight: 1123
+                });
+
+                document.body.removeChild(cloneContainer);
+
+                const imgData = canvas.toDataURL('image/jpeg', 0.98);
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4'); 
+                
+                const pdfWidth = pdf.internal.pageSize.getWidth(); 
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width; 
+                
+                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                pdf.save(`AVENCIA_${state.meta.number || 'DOC'}.pdf`);
+
+                // Sauvegarde
+                const newDocRecord = {
+                    id: Date.now().toString(),
+                    type: state.docType,
+                    number: state.meta.number,
+                    client: state.client.name || 'Client Inconnu',
+                    date: state.meta.date,
+                    total: calculateTotal(),
+                    status: 'En attente'
+                };
+                saveToHistory(newDocRecord);
+
+                // Réinitialiser le numéro
+                state.meta.number = (state.docType === 'quote' ? 'DEV-' : 'FAC-') + Date.now().toString().slice(-4);
+                const metaNum = document.getElementById('meta-number');
+                if(metaNum) metaNum.value = state.meta.number;
+                renderPreview();
+
+            } catch (err) {
+                console.error("Erreur PDF:", err);
+                alert("Une erreur s'est produite lors de la génération. Veuillez réessayer.");
+            } finally {
+                state.isGenerating = false;
+                document.querySelectorAll('.generate-icon, .btn-text').forEach(el => el.classList.remove('hidden'));
+                document.querySelectorAll('.loading-icon').forEach(el => el.classList.add('hidden'));
+            }
+        }
+
+
+        // --- RESTE DU SCRIPT SÉCURISÉ ---
         function initAuth() {
             const authScreen = document.getElementById('auth-screen');
             const appWrapper = document.getElementById('app-wrapper');
@@ -524,13 +680,12 @@
 
                 loadProfileToState();
                 
-                // UX Mobile par défaut : Si l'utilisateur est sur téléphone, afficher le formulaire
                 if (window.innerWidth < 1024) {
                     if (appHistory.length > 0) {
                         switchAppView('documents');
                     } else {
                         switchAppView('editor');
-                        setUIMode('easy'); // Force le mode formulaire sur mobile
+                        setUIMode('easy');
                     }
                 } else {
                     switchAppView(appHistory.length > 0 ? 'documents' : 'editor');
@@ -612,7 +767,6 @@
             }, 3000);
         }
 
-        // --- DOCUMENTS ---
         function saveToHistory(doc) {
             appHistory.unshift(doc);
             localStorage.setItem('avencia_docs', JSON.stringify(appHistory));
@@ -666,7 +820,6 @@
             lucide.createIcons();
         }
 
-        // --- NAVIGATION ---
         function switchAppView(viewName) {
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             if(document.getElementById(`nav-${viewName}`)) document.getElementById(`nav-${viewName}`).classList.add('active');
@@ -699,55 +852,11 @@
                     const metaNumber = document.getElementById('meta-number');
                     if(metaNumber) metaNumber.value = state.meta.number;
                 }
-                
-                // Comportement intelligent : PC = Double, Mobile = Formulaire par défaut
-                if (window.innerWidth < 1024) {
-                    setUIMode('easy');
-                } else {
-                    setUIMode('double'); 
-                }
+                if (window.innerWidth < 1024) setUIMode('easy');
+                else setUIMode('double'); 
                 renderPreview();
             } else {
                 if(fabSave) fabSave.classList.add('hidden');
-            }
-        }
-
-        function setUIMode(mode) {
-            state.isMode = mode;
-            // Update Desktop buttons
-            document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.id === `mode-${mode}`));
-            // Update Mobile Bottom Nav buttons
-            document.querySelectorAll('.mob-nav-btn').forEach(b => b.classList.toggle('active', b.id === `mob-mode-${mode}`));
-
-            const editorEl = document.getElementById('editor-section');
-            const previewEl = document.getElementById('preview-section');
-            const chatEl = document.getElementById('chat-section');
-            const fabSave = document.getElementById('fab-save');
-
-            if (!editorEl || !previewEl || !chatEl) return;
-
-            // Logique d'affichage responsive pour une UX parfaite
-            if (mode === 'double') {
-                // Desktop: Double (Vue divisée) / Mobile: Aperçu Seul (Preview Only)
-                editorEl.className = "hidden lg:flex w-full lg:w-5/12 flex-col gap-6 lg:overflow-y-auto pr-2 no-print custom-scrollbar flex-shrink-0 pb-10";
-                previewEl.className = "w-full lg:w-7/12 overflow-x-hidden overflow-y-auto lg:overflow-auto no-print-scrollbar bg-slate-200/50 p-2 md:p-4 rounded-xl custom-scrollbar flex-shrink-0 pb-10";
-                previewEl.classList.remove('hidden');
-                chatEl.classList.add('hidden');
-                if(fabSave && window.innerWidth < 1024) fabSave.classList.remove('hidden'); // Afficher le bouton de sauvegarde flottant
-            } else if (mode === 'easy') {
-                // Formulaire seul (Mode Edition)
-                editorEl.className = "w-full max-w-3xl mx-auto flex flex-col gap-6 no-print";
-                editorEl.classList.remove('hidden');
-                previewEl.classList.add('hidden');
-                chatEl.classList.add('hidden');
-                if(fabSave) fabSave.classList.add('hidden');
-            } else if (mode === 'chat') {
-                // Chat seul
-                editorEl.classList.add('hidden');
-                previewEl.classList.add('hidden');
-                chatEl.classList.remove('hidden');
-                if(fabSave) fabSave.classList.add('hidden');
-                resetChat();
             }
         }
 
@@ -755,116 +864,12 @@
         const calculateVAT = () => calculateSubtotal() * (state.vatRate / 100);
         const calculateTotal = () => calculateSubtotal() + calculateVAT();
 
-        function switchDocType(type) {
-            state.docType = type;
-            const tQuote = document.getElementById('type-quote');
-            const tInvoice = document.getElementById('type-invoice');
-            if(tQuote) tQuote.classList.toggle('active', type === 'quote');
-            if(tInvoice) tInvoice.classList.toggle('active', type === 'invoice');
-            
-            const tPrefix = document.querySelector('.text-prefix');
-            if(tPrefix) tPrefix.innerText = type === 'quote' ? "N° Devis" : "N° Facture";
-            
-            state.meta.number = (type === 'quote' ? 'DEV-' : 'FAC-') + Date.now().toString().slice(-4);
-            const metaNum = document.getElementById('meta-number');
-            if(metaNum) metaNum.value = state.meta.number;
-            renderPreview();
-        }
-
         const updateNested = (obj, prop, val) => { state[obj][prop] = val; renderPreview(); };
         const updateState = (key, val) => { state[key] = val; renderPreview(); };
         const updateItem = (id, field, val) => { state.items = state.items.map(i => i.id === id ? { ...i, [field]: (['qty','price'].includes(field) ? Number(val) : val) } : i); renderPreview(); };
         const addItem = () => { state.items.push({ id: Date.now(), name: "", description: "", qty: 1, price: 0 }); renderItemsEditor(); renderPreview(); };
         const removeItem = (id) => { if(state.items.length > 1) { state.items = state.items.filter(i => i.id !== id); renderItemsEditor(); renderPreview(); } };
 
-        // --- GÉNÉRATION PDF INFAILLIBLE ---
-        // Cette méthode utilise un conteneur clone invisible. C'est la méthode ultime 
-        // pour empêcher les bugs "UnhandledRejection" ou les factures blanches liés au mobile.
-        async function generatePDF() {
-            if (state.isGenerating) return;
-            state.isGenerating = true;
-            
-            document.querySelectorAll('.generate-icon, .btn-text').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.loading-icon').forEach(el => el.classList.remove('hidden'));
-
-            try {
-                const previewElement = document.getElementById('invoice-preview');
-                
-                // 1. Création d'un clone parfait caché en dehors de l'écran visible
-                const cloneContainer = document.createElement('div');
-                cloneContainer.innerHTML = previewElement.innerHTML;
-                
-                // Styles stricts A4 : Invisible mais présent dans le DOM pour html2canvas
-                cloneContainer.style.cssText = `
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 794px !important;
-                    min-height: 1123px !important;
-                    background-color: white;
-                    margin: 0;
-                    padding: 0;
-                    z-index: -9999;
-                    pointer-events: none;
-                `;
-                document.body.appendChild(cloneContainer);
-
-                // Petite pause pour s'assurer que le navigateur a dessiné le clone
-                await new Promise(resolve => setTimeout(resolve, 300));
-
-                // 2. Capture de l'image
-                const canvas = await html2canvas(cloneContainer, {
-                    scale: 2, // Qualité x2
-                    useCORS: true, 
-                    allowTaint: true,
-                    logging: false,
-                    windowWidth: 794,
-                    windowHeight: 1123
-                });
-
-                // On nettoie le DOM
-                document.body.removeChild(cloneContainer);
-
-                // 3. Fabrication du PDF
-                const imgData = canvas.toDataURL('image/jpeg', 0.98);
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4'); 
-                
-                const pdfWidth = pdf.internal.pageSize.getWidth(); 
-                const pdfHeight = (canvas.height * pdfWidth) / canvas.width; 
-                
-                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-                pdf.save(`AVENCIA_${state.meta.number || 'DOC'}.pdf`);
-
-                // 4. Sauvegarde dans l'historique
-                const newDocRecord = {
-                    id: Date.now().toString(),
-                    type: state.docType,
-                    number: state.meta.number,
-                    client: state.client.name || 'Client Inconnu',
-                    date: state.meta.date,
-                    total: calculateTotal(),
-                    status: 'En attente'
-                };
-                saveToHistory(newDocRecord);
-
-                // Préparation de la prochaine facture
-                state.meta.number = (state.docType === 'quote' ? 'DEV-' : 'FAC-') + Date.now().toString().slice(-4);
-                const metaNum = document.getElementById('meta-number');
-                if(metaNum) metaNum.value = state.meta.number;
-                renderPreview();
-
-            } catch (err) {
-                console.error("Erreur PDF:", err);
-                alert("Erreur de génération. Assurez-vous que votre navigateur autorise le traitement des images.");
-            } finally {
-                state.isGenerating = false;
-                document.querySelectorAll('.generate-icon, .btn-text').forEach(el => el.classList.remove('hidden'));
-                document.querySelectorAll('.loading-icon').forEach(el => el.classList.add('hidden'));
-            }
-        }
-
-        // --- RENDU UI EDITEUR ---
         function renderItemsEditor() {
             const container = document.getElementById('items-container');
             if(!container) return;
@@ -888,7 +893,6 @@
             lucide.createIcons();
         }
 
-        // --- RENDU PDF AVEC 5 MODELES ---
         function renderPreview() {
             const container = document.getElementById('invoice-preview');
             if(!container) return;
@@ -1232,7 +1236,7 @@
             container.innerHTML = htmlContent;
         }
 
-        // --- EVENTS DU DOM (SÉCURISÉS) ---
+        // --- EVENTS DU DOM ---
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             
