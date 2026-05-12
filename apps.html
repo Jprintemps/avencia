@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avencia - Devis & Factures</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Librairies pour le PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; overflow: hidden; }
+        
+        .no-select { user-select: none; -webkit-user-select: none; }
+        input, textarea { user-select: text !important; -webkit-user-select: text !important; }
+        
+        .input-field {
+            background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem;
+            padding: 0.625rem 0.875rem; font-size: 0.875rem; outline: none; transition: all 0.2s; width: 100%;
+        }
+        .input-field:focus { background-color: #ffffff; border-color: #0a1b4f; box-shadow: 0 0 0 2px rgba(10, 27, 79, 0.1); }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+
+        @media print { body { background: white; } .no-print { display: none !important; } }
+
+        .template-btn.active { border-color: #0a1b4f; background-color: #f8fafc; color: #0a1b4f; }
+        .mode-btn.active { background-color: #fff; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); color: #0a1b4f; }
+        .type-btn.active { background-color: #0a1b4f; color: white; border-color: #0a1b4f; }
+        .nav-link.active { background-color: #f1f5f9; color: #0a1b4f; font-weight: 600; border-right: 3px solid #0a1b4f; }
+        
+        .chat-bubble-bot { background-color: #f1f5f9; border-radius: 1rem 1rem 1rem 0; }
+        .chat-bubble-user { background-color: #0a1b4f; color: white; border-radius: 1rem 1rem 0 1rem; }
+        
+        @keyframes fadeInZoom { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .animate-fade { animation: fadeInZoom 0.2s ease-out forwards; }
+
+        #toast { transition: transform 0.3s ease, opacity 0.3s ease; }
+        .toast-hidden { transform: translateY(100%); opacity: 0; }
+        .toast-visible { transform: translateY(0); opacity: 1; }
+    </style>
+</head>
+<body class="h-screen flex text-slate-800 no-select" oncontextmenu="return false;">
+
+    <!-- ÉCRAN D'AUTHENTIFICATION -->
+    <div id="auth-screen" class="fixed inset-0 bg-slate-50 z-[200] flex flex-col items-center justify-center hidden">
+        <div class="mb-8 flex justify-center">
+            <img src="Logo.png" alt="Logo de l'application" class="h-20 md:h-24 object-contain" onerror="this.onerror=null; this.outerHTML='<h1 class=\'font-black text-4xl tracking-tight text-[#0a1b4f]\'>AVENCIA</h1>'">
+        </div>
+        <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-200 w-full max-w-md">
+            <h2 class="text-2xl font-bold text-center text-slate-800 mb-2">Bienvenue</h2>
+            <p class="text-center text-slate-500 mb-8 text-sm">Connectez-vous à votre espace SaaS</p>
+            
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Nom de l'entreprise</label>
+                    <input type="text" id="login-company" class="input-field" placeholder="Ex: Avencia Design" required />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Adresse Email</label>
+                    <input type="email" id="login-email" class="input-field" placeholder="contact@entreprise.com" required />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Mot de passe</label>
+                    <input type="password" id="login-password" class="input-field" placeholder="••••••••" required />
+                </div>
+                <button type="submit" class="w-full bg-[#0a1b4f] hover:bg-[#071336] text-white py-3 rounded-xl font-bold transition-all shadow-md mt-4">
+                    Se connecter / S'inscrire
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-green-500 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 z-[100] toast-hidden">
+        <i data-lucide="check-circle" class="w-5 h-5"></i>
+        <div>
+            <p class="font-bold text-sm" id="toast-title">Succès</p>
+            <p class="text-xs opacity-90" id="toast-msg">Action effectuée.</p>
+        </div>
+    </div>
+
+    <!-- WRAPPER APPLICATION -->
+    <div id="app-wrapper" class="flex h-screen w-full hidden">
+        
+        <!-- SIDEBAR (MENU LATÉRAL) -->
+        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col hidden md:flex z-50">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-center h-[88px]">
+                <img src="Logo.png" alt="Logo" class="h-10 w-full object-contain" onerror="this.onerror=null; this.outerHTML='<span class=\'font-bold text-2xl tracking-tight text-[#0a1b4f]\'>AVENCIA</span>'">
+            </div>
+            
+            <nav class="flex-1 py-6 flex flex-col gap-2 overflow-y-auto">
+                <button onclick="switchAppView('documents')" id="nav-documents" class="nav-link active flex items-center gap-3 px-6 py-3 text-slate-500 hover:text-slate-800 transition-colors w-full text-left">
+                    <i data-lucide="folder-open" class="w-5 h-5"></i><span>Mes Documents</span>
+                </button>
+                <button onclick="switchAppView('editor')" id="nav-editor" class="nav-link flex items-center gap-3 px-6 py-3 text-slate-500 hover:text-slate-800 transition-colors w-full text-left">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i><span>Créer Devis/Facture</span>
+                </button>
+                
+                <div class="my-4 border-t border-slate-100 mx-4"></div>
+                
+                <button onclick="switchAppView('profile')" id="nav-profile" class="nav-link flex items-center gap-3 px-6 py-3 text-slate-500 hover:text-slate-800 transition-colors w-full text-left">
+                    <i data-lucide="user" class="w-5 h-5"></i><span>Mon Profil (Réglages)</span>
+                </button>
+            </nav>
+            
+            <div class="p-6 border-t border-slate-100 bg-slate-50">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <div id="sidebar-avatar" class="w-10 h-10 bg-[#0a1b4f] rounded-full flex shrink-0 items-center justify-center text-white font-bold uppercase">ME</div>
+                        <div class="overflow-hidden">
+                            <p id="sidebar-company" class="text-xs font-bold text-slate-800 truncate">Mon Entreprise</p>
+                            <p class="text-[10px] text-slate-500">Plan Gratuit</p>
+                        </div>
+                    </div>
+                    <button onclick="handleLogout()" class="text-slate-400 hover:text-red-500 transition-colors shrink-0" title="Se déconnecter">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CONTENU PRINCIPAL -->
+        <div class="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50/50">
+            
+            <!-- HEADER GLOBAL -->
+            <header class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center z-40">
+                
+                <!-- Remplacement par le logo pour version mobile -->
+                <div class="md:hidden flex items-center gap-2">
+                    <img src="Logo.png" alt="Logo" class="h-8 object-contain" onerror="this.onerror=null; this.outerHTML='<span class=\'font-bold text-lg text-[#0a1b4f]\'>AVENCIA</span>'">
+                </div>
+
+                <h2 id="top-title" class="font-bold text-xl text-slate-800 hidden md:block">Mes Documents</h2>
+                
+                <div id="editor-toolbar" class="hidden flex items-center gap-4 ml-auto">
+                    <div class="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
+                        <button id="mode-double" class="mode-btn active px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 text-slate-500"><i data-lucide="layout" class="w-4 h-4"></i> Aperçu direct</button>
+                        <button id="mode-easy" class="mode-btn px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 text-slate-500"><i data-lucide="align-left" class="w-4 h-4"></i> Formulaire simple</button>
+                        <button id="mode-chat" class="mode-btn px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 text-slate-500"><i data-lucide="message-square" class="w-4 h-4"></i> Discuter</button>
+                    </div>
+                    <button onclick="generatePDF()" class="bg-[#0a1b4f] hover:bg-[#071336] text-white px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 shadow-sm transition-colors">
+                        <i data-lucide="file-down" class="w-4 h-4 generate-icon"></i>
+                        <i data-lucide="loader-2" class="w-4 h-4 animate-spin hidden loading-icon"></i>
+                        <span class="btn-text hidden md:inline">Générer & Sauvegarder</span>
+                        <span class="btn-text md:hidden">Sauvegarder</span>
+                    </button>
+                </div>
+                
+                <div id="documents-toolbar" class="flex items-center gap-4 ml-auto">
+                    <button onclick="switchAppView('editor')" class="bg-[#0a1b4f] hover:bg-[#071336] text-white px-4 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 shadow-sm">
+                        <i data-lucide="plus" class="w-4 h-4"></i> <span class="hidden md:inline">Nouveau document</span><span class="md:hidden">Nouveau</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- VUE 1 : MES DOCUMENTS -->
+            <div id="view-documents" class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                <div class="max-w-6xl mx-auto">
+                    <div class="flex justify-between items-end mb-8">
+                        <p class="text-slate-500">Gérez vos devis, suivez vos factures et relancez vos clients en un clic.</p>
+                        <div class="flex gap-2">
+                            <button onclick="filterDocs('all')" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-300">Tous</button>
+                            <button onclick="filterDocs('quote')" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-50">Devis</button>
+                            <button onclick="filterDocs('invoice')" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-50">Factures</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-50 text-slate-500">
+                                    <tr>
+                                        <th class="px-6 py-4 font-medium">Statut</th>
+                                        <th class="px-6 py-4 font-medium">Document</th>
+                                        <th class="px-6 py-4 font-medium">Client</th>
+                                        <th class="px-6 py-4 font-medium text-right">Montant</th>
+                                        <th class="px-6 py-4 font-medium text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-list" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                        <div id="empty-history" class="hidden flex flex-col items-center justify-center py-16 text-slate-400">
+                            <i data-lucide="folder-search" class="w-16 h-16 mb-4 opacity-50"></i>
+                            <p class="font-medium text-lg text-slate-600 mb-1">Aucun document trouvé</p>
+                            <button onclick="switchAppView('editor')" class="text-[#0a1b4f] font-bold underline mt-2">Créer mon premier document</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VUE 2 : PROFIL UTILISATEUR (PARAMÈTRES) -->
+            <div id="view-profile" class="hidden flex-1 overflow-y-auto p-8 custom-scrollbar">
+                <div class="max-w-4xl mx-auto">
+                    <p class="text-slate-500 mb-8">Ces informations seront utilisées par défaut sur toutes vos futures factures et devis.</p>
+                    
+                    <form id="profile-form" class="space-y-6">
+                        <!-- Paramètres Entreprise -->
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                            <h3 class="font-bold text-lg text-slate-800 mb-4 border-b border-slate-100 pb-2">Informations de l'entreprise</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="col-span-full">
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nom / Raison Sociale</label>
+                                    <input type="text" id="prof-name" class="input-field" required />
+                                </div>
+                                <div class="col-span-full">
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Adresse complète</label>
+                                    <textarea id="prof-address" class="input-field h-20"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email de contact</label>
+                                    <input type="email" id="prof-email" class="input-field" required />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Téléphone</label>
+                                    <input type="text" id="prof-phone" class="input-field" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Numéro légal (SIRET, RCCM...)</label>
+                                    <input type="text" id="prof-id" class="input-field" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Paramètres Facturation par défaut -->
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                            <h3 class="font-bold text-lg text-slate-800 mb-4 border-b border-slate-100 pb-2">Préférences de facturation</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">TVA par défaut (%)</label>
+                                    <input type="number" id="prof-vat" class="input-field" value="0" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Couleur des factures</label>
+                                    <div class="flex items-center gap-3">
+                                        <input type="color" id="prof-color" value="#0a1b4f" class="w-10 h-10 rounded cursor-pointer border-0 p-0" />
+                                        <span class="text-sm text-slate-500 font-mono">Thème de marque</span>
+                                    </div>
+                                </div>
+                                <div class="col-span-full">
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Informations de paiement (RIB) par défaut</label>
+                                    <textarea id="prof-bank" class="input-field h-24" placeholder="Ces informations apparaîtront en bas de facture."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end pt-4 pb-12">
+                            <button type="submit" class="bg-[#0a1b4f] hover:bg-[#071336] text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition-colors">
+                                <i data-lucide="save" class="w-5 h-5"></i> Enregistrer les modifications
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- VUE 3 : ÉDITEUR DE DOCUMENT -->
+            <div id="view-editor" class="hidden flex-1 flex flex-col lg:flex-row gap-8 p-4 lg:p-8 overflow-hidden h-full">
+                
+                <section id="editor-section" class="w-full lg:w-5/12 flex flex-col gap-6 overflow-y-auto pr-2 no-print custom-scrollbar">
+                    <!-- Type Doc -->
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider"><i data-lucide="file-question" class="w-4 h-4"></i> Document</h2>
+                        <div class="flex gap-4">
+                            <button id="type-quote" class="type-btn active flex-1 py-3 rounded-lg border-2 font-bold transition-all text-xs">DEVIS</button>
+                            <button id="type-invoice" class="type-btn flex-1 py-3 rounded-lg border-2 font-bold transition-all text-xs">FACTURE</button>
+                        </div>
+                    </div>
+
+                    <!-- Modèles & Couleurs -->
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider"><i data-lucide="palette" class="w-4 h-4"></i> Style du document</h2>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-5" id="template-selector">
+                            <button data-template="modern" class="template-btn active py-3 px-2 rounded-lg border-2 border-slate-100 text-xs font-bold transition-all">Moderne</button>
+                            <button data-template="classic" class="template-btn py-3 px-2 rounded-lg border-2 border-slate-100 text-xs font-bold transition-all">Classique</button>
+                            <button data-template="corporate" class="template-btn py-3 px-2 rounded-lg border-2 border-slate-100 text-xs font-bold transition-all">Entreprise</button>
+                            <button data-template="elegant" class="template-btn py-3 px-2 rounded-lg border-2 border-slate-100 text-xs font-bold transition-all">Élégant</button>
+                            <button data-template="bold" class="template-btn py-3 px-2 rounded-lg border-2 border-slate-100 text-xs font-bold transition-all">Coloré</button>
+                        </div>
+                        <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+                           <label class="text-[10px] font-bold text-slate-400 uppercase">Couleur personnalisée</label>
+                           <input type="color" id="primaryColor" value="#0a1b4f" class="w-8 h-8 rounded cursor-pointer border-0 p-0" />
+                        </div>
+                    </div>
+
+                    <!-- Mes Infos -->
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider"><i data-lucide="building-2" class="w-4 h-4"></i> Mes informations</h2>
+                        <div class="grid grid-cols-1 gap-4">
+                            <div id="logo-section" class="relative">
+                                <label id="logo-upload-zone" for="logo-input" class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50">
+                                    <i data-lucide="image-plus" class="w-5 h-5 text-slate-300 mb-1"></i><p class="text-[10px] text-slate-400 mt-2">Cliquez pour ajouter un logo</p>
+                                    <input type="file" id="logo-input" class="hidden" accept="image/*" />
+                                </label>
+                                <div id="logo-preview-area" class="hidden absolute inset-0 bg-white border-2 border-slate-100 rounded-xl flex items-center justify-between p-3 z-10">
+                                    <img id="logo-img" src="" class="h-14 w-auto object-contain" />
+                                    <button onclick="removeLogo()" class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                                </div>
+                            </div>
+                            <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Mon Entreprise</label><input type="text" id="prov-name" class="input-field" /></div>
+                            <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Adresse</label><textarea id="prov-address" class="input-field h-16"></textarea></div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Tél</label><input type="text" id="prov-phone" class="input-field" /></div>
+                                <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Email</label><input type="email" id="prov-email" class="input-field" /></div>
+                            </div>
+                            <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">ID (RCCM...)</label><input type="text" id="prov-id" class="input-field" /></div>
+                        </div>
+                    </div>
+
+                    <!-- Client -->
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider"><i data-lucide="user" class="w-4 h-4"></i> Client</h2>
+                        <div class="grid grid-cols-1 gap-4">
+                            <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Nom du client</label><input type="text" id="cli-name" class="input-field" /></div>
+                            <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Son adresse</label><input type="text" id="cli-address" class="input-field" /></div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1 text-prefix">N° Devis</label><input type="text" id="meta-number" class="input-field" /></div>
+                                <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Date</label><input type="date" id="meta-date" class="input-field" /></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vente -->
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider"><i data-lucide="shopping-bag" class="w-4 h-4"></i> Ventes</h2>
+                        <div id="items-container" class="space-y-3"></div>
+                        <button onclick="addItem()" class="mt-4 w-full py-2 border border-dashed border-slate-300 rounded-lg text-slate-400 hover:text-slate-600 flex items-center justify-center gap-2 text-xs font-medium">
+                            <i data-lucide="plus" class="w-3 h-3"></i> Ajouter un article
+                        </button>
+                    </div>
+
+                    <!-- Paiement -->
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-10">
+                        <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider"><i data-lucide="credit-card" class="w-4 h-4"></i> Paiement</h2>
+                        <div class="space-y-4">
+                            <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Taxe / TVA (%)</label><input type="number" id="vat-rate" class="input-field" value="0" /></div>
+                            <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Infos Bancaires</label><textarea id="bank-info" class="input-field h-20"></textarea></div>
+                        </div>
+                    </div>
+
+                    <div id="easy-mode-btn-container" class="mt-4 mb-12 hidden px-2">
+                        <button onclick="generatePDF()" class="w-full bg-[#0a1b4f] text-white py-5 rounded-xl font-bold flex items-center justify-center gap-3 shadow-xl text-lg">
+                            <i data-lucide="file-down" class="w-6 h-6 generate-icon"></i>
+                            <i data-lucide="loader-2" class="w-6 h-6 animate-spin hidden loading-icon"></i>
+                            <span class="btn-text">Générer le document</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- SECTION CHAT -->
+                <section id="chat-section" class="hidden w-full max-w-2xl mx-auto flex flex-col bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden no-print h-full">
+                    <div class="bg-[#0a1b4f] p-5 flex items-center gap-4 shrink-0">
+                        <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center shadow-inner"><i data-lucide="bot" class="text-white w-7 h-7"></i></div>
+                        <div><h3 class="text-white font-bold">Assistant Avencia</h3><p class="text-white/50 text-xs italic">Créons votre document en discutant.</p></div>
+                    </div>
+                    <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar"></div>
+                    
+                    <div id="chat-logo-upload" class="hidden px-6 py-4 bg-white border-t border-slate-100 flex items-center justify-between">
+                        <p class="text-xs font-semibold text-slate-600">Choisissez votre logo :</p>
+                        <input type="file" id="chat-logo-input" class="hidden" accept="image/*" />
+                        <button onclick="document.getElementById('chat-logo-input').click()" class="bg-[#0a1b4f] text-white px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider">Parcourir</button>
+                    </div>
+
+                    <div id="chat-input-area" class="p-5 border-t border-slate-100 bg-white">
+                        <form id="chat-form" class="flex gap-3">
+                            <input type="text" id="chat-input" placeholder="Répondez ici..." class="flex-1 input-field" autocomplete="off" />
+                            <button type="submit" class="bg-[#0a1b4f] text-white w-12 rounded-xl flex items-center justify-center shadow-lg active:scale-95 transition-all"><i data-lucide="send" class="w-5 h-5"></i></button>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- SECTION APERÇU -->
+                <section id="preview-section" class="w-full lg:w-7/12 flex justify-center overflow-y-auto no-print-scrollbar bg-slate-200/50 p-4 rounded-xl custom-scrollbar">
+                    <div id="invoice-preview" class="bg-white shadow-2xl border border-slate-200 origin-top h-max"></div>
+                </section>
+            </div>
+        </div>
+    </div>
+    
+    <div id="pdf-render-zone" style="position: absolute; top: -9999px; left: -9999px;"></div>
+
+    <script>
+        /** Protection **/
+        document.onkeydown = (e) => {
+            if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && ['I','C','J'].includes(String.fromCharCode(e.keyCode))) || (e.ctrlKey && ['U','S'].includes(String.fromCharCode(e.keyCode)))) return false;
+        };
+
+        // --- GESTION DE L'AUTHENTIFICATION & PROFIL ---
+        let currentUser = JSON.parse(localStorage.getItem('avencia_user')) || null;
+        let appHistory = JSON.parse(localStorage.getItem('avencia_docs')) || [];
+
+        // État de l'éditeur
+        let state = {
+            docType: 'quote', selectedTemplate: 'modern', logo: 'Logo.png', primaryColor: '#0a1b4f',
+            isGenerating: false,
+            provider: { name: "", id: "", address: "", phone: "", email: "" },
+            client: { name: "", address: "" },
+            meta: { number: "DEV-" + Date.now().toString().slice(-4), date: new Date().toISOString().split('T')[0] },
+            items: [{ id: 1, name: "", description: "", qty: 1, price: 0 }],
+            vatRate: 0, bankInfo: "",
+        };
+
+        function initAuth() {
+            const authScreen = document.getElementById('auth-screen');
+            const appWrapper = document.getElementById('app-wrapper');
+
+            if (!currentUser) {
+                if(authScreen) authScreen.classList.remove('hidden');
+                if(appWrapper) appWrapper.classList.add('hidden');
+            } else {
+                if(authScreen) authScreen.classList.add('hidden');
+                if(appWrapper) appWrapper.classList.remove('hidden');
+                
+                // Mettre à jour l'UI de la Sidebar
+                const sbCompany = document.getElementById('sidebar-company');
+                const sbAvatar = document.getElementById('sidebar-avatar');
+                if(sbCompany) sbCompany.innerText = currentUser.name;
+                if(sbAvatar) sbAvatar.innerText = currentUser.name.charAt(0);
+
+                // Charger le profil dans le state
+                loadProfileToState();
+                
+                // Rediriger vers mes documents s'il y a un historique
+                switchAppView(appHistory.length > 0 ? 'documents' : 'editor');
+            }
+        }
+
+        function handleLogout() {
+            if(confirm("Voulez-vous vous déconnecter ?")) {
+                currentUser = null;
+                localStorage.removeItem('avencia_user');
+                initAuth();
+            }
+        }
+
+        function loadProfileToState() {
+            if(currentUser) {
+                state.provider.name = currentUser.name || "";
+                state.provider.email = currentUser.email || "";
+                state.provider.address = currentUser.address || "";
+                state.provider.phone = currentUser.phone || "";
+                state.provider.id = currentUser.id || "";
+                state.primaryColor = currentUser.color || "#0a1b4f";
+                state.vatRate = currentUser.vatRate || 0;
+                state.bankInfo = currentUser.bankInfo || "";
+
+                // Mettre à jour les champs HTML de l'éditeur
+                const ids = ['prov-name','prov-email','prov-address','prov-phone','prov-id','primaryColor','vat-rate','bank-info'];
+                ids.forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) {
+                        const key = id.replace('prov-', '');
+                        if(id === 'primaryColor') el.value = state.primaryColor;
+                        else if(id === 'vat-rate') el.value = state.vatRate;
+                        else if(id === 'bank-info') el.value = state.bankInfo;
+                        else el.value = state.provider[key];
+                    }
+                });
+
+                // Pré-remplir les champs de l'onglet profil aussi
+                const safeSet = (id, val) => { const e = document.getElementById(id); if(e) e.value = val; };
+                safeSet('prof-name', currentUser.name || "");
+                safeSet('prof-email', currentUser.email || "");
+                safeSet('prof-address', currentUser.address || "");
+                safeSet('prof-phone', currentUser.phone || "");
+                safeSet('prof-id', currentUser.id || "");
+                safeSet('prof-color', currentUser.color || "#0a1b4f");
+                safeSet('prof-vat', currentUser.vatRate || 0);
+                safeSet('prof-bank', currentUser.bankInfo || "");
+
+                renderPreview();
+            }
+        }
+
+        function showToast(title, msg) {
+            const t = document.getElementById('toast');
+            if(!t) return;
+            document.getElementById('toast-title').innerText = title;
+            document.getElementById('toast-msg').innerText = msg;
+            t.classList.remove('toast-hidden');
+            t.classList.add('toast-visible');
+            setTimeout(() => {
+                t.classList.remove('toast-visible');
+                t.classList.add('toast-hidden');
+            }, 3000);
+        }
+
+        // --- DOCUMENTS ---
+        function saveToHistory(doc) {
+            appHistory.unshift(doc);
+            localStorage.setItem('avencia_docs', JSON.stringify(appHistory));
+            renderHistoryList();
+            showToast("Document enregistré", "Il est disponible dans 'Mes Documents'.");
+        }
+
+        function toggleDocStatus(id) {
+            const doc = appHistory.find(d => d.id === id);
+            if(doc) {
+                doc.status = doc.status === 'En attente' ? 'Payée' : 'En attente';
+                localStorage.setItem('avencia_docs', JSON.stringify(appHistory));
+                renderHistoryList();
+            }
+        }
+
+        function deleteDoc(id) {
+            if(confirm("Supprimer définitivement ce document de l'historique ?")) {
+                appHistory = appHistory.filter(d => d.id !== id);
+                localStorage.setItem('avencia_docs', JSON.stringify(appHistory));
+                renderHistoryList();
+            }
+        }
+
+        function sendReminder(email, number) {
+            const subject = encodeURIComponent(`Relance : Facture ${number}`);
+            const body = encodeURIComponent(`Bonjour,\n\nSauf erreur de notre part, nous n'avons pas encore reçu le règlement de la facture ${number}.\n\nMerci de bien vouloir régulariser la situation.\n\nCordialement,`);
+            window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+        }
+
+        function filterDocs(type) { renderHistoryList(type); }
+
+        function renderHistoryList(filterType = 'all') {
+            const container = document.getElementById('history-list');
+            const emptyState = document.getElementById('empty-history');
+            if(!container || !emptyState) return;
+
+            let filtered = filterType !== 'all' ? appHistory.filter(d => d.type === filterType) : appHistory;
+
+            if(filtered.length === 0) { container.innerHTML = ''; emptyState.classList.remove('hidden'); return; }
+            emptyState.classList.add('hidden');
+            
+            container.innerHTML = filtered.map(doc => {
+                const isInv = doc.type === 'invoice';
+                const isPaid = doc.status === 'Payée';
+                const badge = !isInv ? '<span class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-bold uppercase">Devis</span>' : 
+                              (isPaid ? `<span class="bg-green-100 text-green-600 px-2 py-1 rounded text-xs font-bold uppercase cursor-pointer hover:opacity-80" onclick="toggleDocStatus('${doc.id}')">Payée</span>` : `<span class="bg-amber-100 text-amber-600 px-2 py-1 rounded text-xs font-bold uppercase cursor-pointer hover:opacity-80" onclick="toggleDocStatus('${doc.id}')">En attente</span>`);
+                
+                return `<tr class="hover:bg-slate-50 border-b border-slate-50"><td class="px-6 py-4">${badge}</td><td class="px-6 py-4"><p class="font-bold text-slate-800">${doc.number}</p><p class="text-xs text-slate-500">${doc.date}</p></td><td class="px-6 py-4 font-medium text-slate-600">${doc.client}</td><td class="px-6 py-4 text-right font-black text-slate-800">${doc.total.toFixed(2)} $</td><td class="px-6 py-4"><div class="flex items-center justify-center gap-2">${isInv && !isPaid ? `<button onclick="sendReminder('contact@client.com', '${doc.number}')" class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"><i data-lucide="send" class="w-4 h-4"></i></button>` : ''}<button onclick="deleteDoc('${doc.id}')" class="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></td></tr>`;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        // --- NAVIGATION ---
+        function switchAppView(viewName) {
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            if(document.getElementById(`nav-${viewName}`)) document.getElementById(`nav-${viewName}`).classList.add('active');
+
+            ['documents', 'editor', 'profile'].forEach(v => {
+                const view = document.getElementById(`view-${v}`);
+                if(view) view.classList.add('hidden');
+            });
+            const selectedView = document.getElementById(`view-${viewName}`);
+            if(selectedView) selectedView.classList.remove('hidden');
+
+            const titles = { 'documents': 'Mes Documents', 'editor': 'Création de Document', 'profile': 'Profil & Réglages' };
+            const topTitle = document.getElementById('top-title');
+            if(topTitle) topTitle.innerText = titles[viewName];
+            
+            const docsToolbar = document.getElementById('documents-toolbar');
+            const editToolbar = document.getElementById('editor-toolbar');
+            
+            if(docsToolbar) docsToolbar.classList.toggle('hidden', viewName === 'editor' || viewName === 'profile');
+            if(editToolbar) editToolbar.classList.toggle('hidden', viewName !== 'editor');
+
+            if(viewName === 'documents') renderHistoryList();
+            if(viewName === 'editor' && !state.meta.number.includes('-')) {
+                state.meta.number = (state.docType === 'quote' ? 'DEV-' : 'FAC-') + Date.now().toString().slice(-4);
+                const metaNumber = document.getElementById('meta-number');
+                if(metaNumber) metaNumber.value = state.meta.number;
+                renderPreview();
+            }
+        }
+
+        const setUIMode = (mode) => {
+            state.isMode = mode;
+            const elements = { editor: 'editor-section', preview: 'preview-section', chat: 'chat-section', easy: 'easy-mode-btn-container' };
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.id === `mode-${mode}`));
+
+            const editorEl = document.getElementById(elements.editor);
+            const previewEl = document.getElementById(elements.preview);
+            const chatEl = document.getElementById(elements.chat);
+            const easyEl = document.getElementById(elements.easy);
+
+            if (!editorEl || !previewEl || !chatEl || !easyEl) return;
+
+            if (mode === 'double') {
+                editorEl.className = "w-full lg:w-5/12 flex flex-col gap-6 overflow-y-auto pr-2 no-print custom-scrollbar";
+                editorEl.classList.remove('hidden');
+                previewEl.classList.remove('hidden');
+                chatEl.classList.add('hidden');
+                easyEl.classList.add('hidden');
+            } else if (mode === 'easy') {
+                editorEl.className = "w-full max-w-3xl mx-auto flex flex-col gap-6 no-print";
+                editorEl.classList.remove('hidden');
+                previewEl.classList.add('hidden');
+                chatEl.classList.add('hidden');
+                easyEl.classList.remove('hidden');
+            } else {
+                editorEl.classList.add('hidden');
+                previewEl.classList.add('hidden');
+                chatEl.classList.remove('hidden');
+                easyEl.classList.add('hidden');
+                resetChat();
+            }
+        };
+
+        // --- EDITEUR LOGIQUE ---
+        const calculateSubtotal = () => state.items.reduce((sum, i) => sum + (i.qty * i.price), 0);
+        const calculateVAT = () => calculateSubtotal() * (state.vatRate / 100);
+        const calculateTotal = () => calculateSubtotal() + calculateVAT();
+
+        const switchDocType = (type) => {
+            state.docType = type;
+            const tQuote = document.getElementById('type-quote');
+            const tInvoice = document.getElementById('type-invoice');
+            if(tQuote) tQuote.classList.toggle('active', type === 'quote');
+            if(tInvoice) tInvoice.classList.toggle('active', type === 'invoice');
+            
+            const tPrefix = document.querySelector('.text-prefix');
+            if(tPrefix) tPrefix.innerText = type === 'quote' ? "N° Devis" : "N° Facture";
+            
+            state.meta.number = (type === 'quote' ? 'DEV-' : 'FAC-') + Date.now().toString().slice(-4);
+            const metaNum = document.getElementById('meta-number');
+            if(metaNum) metaNum.value = state.meta.number;
+            renderPreview();
+        };
+
+        const updateNested = (obj, prop, val) => { state[obj][prop] = val; renderPreview(); };
+        const updateState = (key, val) => { state[key] = val; renderPreview(); };
+        const updateItem = (id, field, val) => { state.items = state.items.map(i => i.id === id ? { ...i, [field]: (['qty','price'].includes(field) ? Number(val) : val) } : i); renderPreview(); };
+        const addItem = () => { state.items.push({ id: Date.now(), name: "", description: "", qty: 1, price: 0 }); renderItemsEditor(); renderPreview(); };
+        const removeItem = (id) => { if(state.items.length > 1) { state.items = state.items.filter(i => i.id !== id); renderItemsEditor(); renderPreview(); } };
+
+        // --- GÉNÉRATION PDF & SAUVEGARDE DB LOCALE ---
+        async function generatePDF() {
+            if (state.isGenerating) return;
+            state.isGenerating = true;
+            
+            document.querySelectorAll('.generate-icon, .btn-text').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.loading-icon').forEach(el => el.classList.remove('hidden'));
+
+            try {
+                const previewElement = document.getElementById('invoice-preview');
+                const renderZone = document.getElementById('pdf-render-zone');
+                
+                renderZone.style.cssText = `position: absolute; top: -9999px; left: -9999px; width: 794px; background: white; padding: 0; margin: 0; box-shadow: none; border: none;`;
+                renderZone.innerHTML = previewElement.innerHTML;
+
+                await new Promise(r => setTimeout(r, 100));
+                const canvas = await html2canvas(renderZone, { scale: 2, useCORS: true, logging: false });
+                renderZone.innerHTML = ''; 
+
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                
+                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                pdf.save(`AVENCIA_${state.meta.number || 'DOC'}.pdf`);
+
+                // Sauvegarde
+                const newDocRecord = {
+                    id: Date.now().toString(),
+                    type: state.docType,
+                    number: state.meta.number,
+                    client: state.client.name || 'Client Inconnu',
+                    date: state.meta.date,
+                    total: calculateTotal(),
+                    status: 'En attente'
+                };
+                saveToHistory(newDocRecord);
+
+                // Nouveau num pour le prochain
+                state.meta.number = (state.docType === 'quote' ? 'DEV-' : 'FAC-') + Date.now().toString().slice(-4);
+                const metaNum = document.getElementById('meta-number');
+                if(metaNum) metaNum.value = state.meta.number;
+                renderPreview();
+
+            } catch (err) {
+                console.error("Erreur PDF:", err);
+                alert("Une erreur s'est produite lors de la génération. Veuillez réessayer.");
+            } finally {
+                state.isGenerating = false;
+                document.querySelectorAll('.generate-icon, .btn-text').forEach(el => el.classList.remove('hidden'));
+                document.querySelectorAll('.loading-icon').forEach(el => el.classList.add('hidden'));
+            }
+        }
+
+        // --- RENDU UI ---
+        function renderItemsEditor() {
+            const container = document.getElementById('items-container');
+            if(!container) return;
+            container.innerHTML = state.items.map(item => `
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 relative group animate-logo">
+                    <button onclick="removeItem(${item.id})" class="absolute -top-2 -right-2 bg-white text-red-500 p-1 rounded-full shadow border opacity-0 group-hover:opacity-100 transition"><i data-lucide="x" class="w-4 h-4"></i></button>
+                    <div class="grid grid-cols-1 gap-2">
+                        <input type="text" placeholder="Désignation de l'article" class="input-field text-xs font-bold" value="${item.name}" oninput="updateItem(${item.id}, 'name', this.value)">
+                        <textarea placeholder="Description (optionnelle)" class="input-field text-xs h-12" oninput="updateItem(${item.id}, 'description', this.value)">${item.description || ''}</textarea>
+                        <div class="grid grid-cols-3 gap-2 mt-1">
+                            <div><label class="text-[9px] text-slate-400 uppercase font-bold">Qté</label><input type="number" class="input-field py-1 px-2" value="${item.qty}" oninput="updateItem(${item.id}, 'qty', this.value)"></div>
+                            <div><label class="text-[9px] text-slate-400 uppercase font-bold">Prix unitaire</label><input type="number" class="input-field py-1 px-2" value="${item.price}" oninput="updateItem(${item.id}, 'price', this.value)"></div>
+                            <div class="flex items-end justify-end"><span class="font-black text-xs text-[#0a1b4f]">${(item.qty * item.price).toFixed(2)} $</span></div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function renderPreview() {
+            const container = document.getElementById('invoice-preview');
+            if(!container) return;
+            const isQuote = state.docType === 'quote';
+            const docTypeName = isQuote ? 'DEVIS' : 'FACTURE';
+            const primary = state.primaryColor || '#0a1b4f';
+            const sub = calculateSubtotal();
+            const tax = calculateVAT();
+            const total = calculateTotal();
+            
+            const logoHtml = state.logo 
+                ? `<img src="${state.logo}" class="max-h-16 w-auto object-contain" />` 
+                : `<div class="w-14 h-14 rounded-xl flex items-center justify-center font-bold text-white text-2xl shadow-md" style="background: linear-gradient(135deg, ${primary}, #2a3b6f);">${(state.provider.name.charAt(0) || 'A').toUpperCase()}</div>`;
+
+            const a4Wrapper = `style="width: 794px; min-height: 1123px; background: white; margin: 0 auto; position: relative; display: flex; flex-direction: column;"`;
+            let htmlContent = '';
+
+            if (state.selectedTemplate === 'modern') {
+                htmlContent = `
+                <div class="text-slate-800 p-[60px]" ${a4Wrapper}>
+                    <div class="absolute top-0 left-0 right-0 h-3" style="background-color: ${primary}"></div>
+                    <div class="flex justify-between items-start mt-4 mb-14">
+                        <div class="flex flex-col">
+                            ${logoHtml}
+                            <h2 class="font-bold text-lg mt-4 text-slate-800 tracking-tight">${state.provider.name || 'Mon Entreprise'}</h2>
+                            <p class="text-xs text-slate-500 max-w-[250px] whitespace-pre-line mt-1 leading-relaxed">${state.provider.address || 'Adresse non renseignée'}</p>
+                            <p class="text-xs text-slate-500 mt-1">${state.provider.phone}  ${state.provider.email ? `• ${state.provider.email}` : ''}</p>
+                            ${state.provider.id ? `<p class="text-[10px] text-slate-400 mt-2 uppercase font-bold tracking-wider">${state.provider.id}</p>` : ''}
+                        </div>
+                        <div class="text-right">
+                            <h1 class="text-4xl font-black mb-2 tracking-tighter" style="color: ${primary}">${docTypeName}</h1>
+                            <div class="bg-slate-50 rounded-lg p-3 inline-block border border-slate-100 mt-2">
+                                <p class="text-sm font-bold text-slate-700">N° ${state.meta.number}</p>
+                                <p class="text-[10px] text-slate-500 mt-1 uppercase font-semibold">Date : ${state.meta.date}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-12 border-l-4 pl-4" style="border-color: ${primary}">
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Facturé à</p>
+                        <h3 class="font-bold text-xl text-slate-800">${state.client.name || 'Nom du Client'}</h3>
+                        <p class="text-sm text-slate-600 mt-1 max-w-[300px]">${state.client.address || 'Adresse du client non renseignée'}</p>
+                    </div>
+
+                    <div class="flex-1 mb-8">
+                        <table class="w-full text-left text-sm border-collapse">
+                            <thead>
+                                <tr>
+                                    <th class="py-3 px-4 text-white font-semibold rounded-tl-lg w-1/2" style="background-color: ${primary}">Désignation</th>
+                                    <th class="py-3 px-4 text-white font-semibold text-center" style="background-color: ${primary}">Qté</th>
+                                    <th class="py-3 px-4 text-white font-semibold text-right" style="background-color: ${primary}">Prix unitaire</th>
+                                    <th class="py-3 px-4 text-white font-semibold text-right rounded-tr-lg" style="background-color: ${primary}">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${state.items.map((i, index) => `
+                                    <tr class="${index % 2 === 0 ? 'bg-slate-50' : 'bg-white'} border-b border-slate-100">
+                                        <td class="py-4 px-4"><p class="font-bold text-slate-800">${i.name || '---'}</p>${i.description ? `<p class="text-xs text-slate-500 mt-1">${i.description.replace(/\n/g, '<br>')}</p>` : ''}</td>
+                                        <td class="py-4 px-4 text-center font-medium text-slate-600">${i.qty}</td>
+                                        <td class="py-4 px-4 text-right font-medium text-slate-600">${i.price.toFixed(2)} $</td>
+                                        <td class="py-4 px-4 text-right font-black text-slate-800">${(i.qty * i.price).toFixed(2)} $</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="flex justify-end mb-12">
+                        <div class="w-[300px]">
+                            <div class="flex justify-between py-2 text-sm text-slate-600 border-b border-slate-100"><span>Prix sans taxe</span><span>${sub.toFixed(2)} $</span></div>
+                            <div class="flex justify-between py-2 text-sm text-slate-600 border-b border-slate-100"><span>Taxe (${state.vatRate}%)</span><span>${tax.toFixed(2)} $</span></div>
+                            <div class="flex justify-between items-center py-4 mt-2 bg-slate-50 rounded-xl px-4 border border-slate-100"><span class="font-bold text-slate-800">TOTAL TTC</span><span class="font-black text-2xl" style="color: ${primary}">${total.toFixed(2)} $</span></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto border-t-2 border-slate-100 pt-6 flex justify-between gap-8 text-xs">
+                        <div class="flex-1"><p class="font-bold text-slate-800 uppercase tracking-wider mb-2">Informations de paiement</p><p class="text-slate-600 whitespace-pre-line leading-relaxed">${state.bankInfo || 'Veuillez régler à réception.'}</p></div>
+                        <div class="text-right"><p class="font-bold text-slate-800 uppercase tracking-wider mb-2">${isQuote ? 'Conditions' : 'Note'}</p><p class="text-slate-500">${isQuote ? 'Ce devis est valable 30 jours.' : 'Merci pour votre confiance.'}</p></div>
+                    </div>
+                </div>`;
+            } 
+            else if (state.selectedTemplate === 'classic') {
+                htmlContent = `
+                <div class="p-[60px] font-serif text-slate-800" ${a4Wrapper}>
+                    <div class="flex justify-between items-end mb-8 border-b-2 pb-6 gap-4" style="border-color: ${primary}">
+                        <div class="flex-1">${state.logo ? `<img src="${state.logo}" class="max-h-16 w-auto object-contain" />` : ''}</div>
+                        <div class="text-center flex-1">
+                            <h1 class="text-3xl font-bold uppercase tracking-widest whitespace-nowrap" style="color: ${primary}">${docTypeName}</h1>
+                            <p class="text-lg mt-2 font-bold" style="color: ${primary}">N° ${state.meta.number}</p>
+                        </div>
+                        <div class="flex-1 text-right text-sm">Date : ${state.meta.date}</div>
+                    </div>
+                    <div class="flex justify-between mb-10 gap-8">
+                        <div class="flex-1 border p-4" style="border-color: ${primary}">
+                            <p class="font-bold underline mb-2 text-sm uppercase" style="color: ${primary}">Émetteur :</p>
+                            <h2 class="font-bold text-lg">${state.provider.name || '-'}</h2>
+                            <p class="text-sm whitespace-pre-line mt-1">${state.provider.address || '-'}</p>
+                            <p class="text-sm mt-1">Tél: ${state.provider.phone || '-'}</p>
+                            <p class="text-sm">Email: ${state.provider.email || '-'}</p>
+                            ${state.provider.id ? `<p class="text-xs mt-2 italic">${state.provider.id}</p>` : ''}
+                        </div>
+                        <div class="flex-1 border p-4" style="border-color: ${primary}">
+                            <p class="font-bold underline mb-2 text-sm uppercase" style="color: ${primary}">Client :</p>
+                            <h3 class="font-bold text-lg">${state.client.name || "-"}</h3>
+                            <p class="text-sm mt-1">${state.client.address || "-"}</p>
+                        </div>
+                    </div>
+                    <div class="flex-1 mb-8">
+                        <table class="w-full text-left border-collapse border text-sm" style="border-color: ${primary}">
+                            <thead>
+                                <tr class="text-white" style="background-color: ${primary}">
+                                    <th class="py-2 px-3 border font-bold" style="border-color: ${primary}">Désignation</th>
+                                    <th class="py-2 px-3 border font-bold text-center w-16" style="border-color: ${primary}">Qté</th>
+                                    <th class="py-2 px-3 border font-bold text-right w-24" style="border-color: ${primary}">P.U ($)</th>
+                                    <th class="py-2 px-3 border font-bold text-right w-28" style="border-color: ${primary}">Montant ($)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${state.items.map(i => `
+                                    <tr>
+                                        <td class="py-2 px-3 border" style="border-color: ${primary}"><strong>${i.name || "---"}</strong>${i.description ? `<div class="text-xs mt-1 text-gray-700">${i.description.replace(/\n/g, '<br>')}</div>` : ''}</td>
+                                        <td class="py-2 px-3 border text-center" style="border-color: ${primary}">${i.qty}</td>
+                                        <td class="py-2 px-3 border text-right" style="border-color: ${primary}">${i.price.toFixed(2)}</td>
+                                        <td class="py-2 px-3 border text-right font-medium" style="border-color: ${primary}">${(i.qty * i.price).toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="flex justify-end mb-10">
+                        <table class="w-64 border-collapse border text-sm" style="border-color: ${primary}">
+                            <tbody>
+                                <tr><td class="py-2 px-3 border font-bold" style="border-color: ${primary}">Prix sans taxe</td><td class="py-2 px-3 border text-right" style="border-color: ${primary}">${sub.toFixed(2)} $</td></tr>
+                                <tr><td class="py-2 px-3 border font-bold" style="border-color: ${primary}">Taxe (${state.vatRate}%)</td><td class="py-2 px-3 border text-right" style="border-color: ${primary}">${tax.toFixed(2)} $</td></tr>
+                                <tr class="text-white" style="background-color: ${primary}"><td class="py-2 px-3 border font-bold text-lg" style="border-color: ${primary}">TOTAL</td><td class="py-2 px-3 border text-right font-bold text-lg" style="border-color: ${primary}">${total.toFixed(2)} $</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-auto text-sm border p-4" style="border-color: ${primary}">
+                        <p class="font-bold underline mb-1" style="color: ${primary}">Paiement et Conditions :</p>
+                        <p class="whitespace-pre-line text-xs">${state.bankInfo || 'Payable à réception.'}</p>
+                    </div>
+                </div>`;
+            }
+            else if (state.selectedTemplate === 'corporate') {
+                htmlContent = `
+                <div class="text-slate-800" ${a4Wrapper}>
+                    <div class="text-white p-[60px] flex justify-between items-center" style="background-color: ${primary}; height: 220px;">
+                        <div class="flex items-center gap-6">
+                            ${state.logo ? `<div class="bg-white p-2 rounded-lg shrink-0"><img src="${state.logo}" class="max-h-20 w-auto object-contain" /></div>` : ''}
+                            <div>
+                                <h1 class="text-3xl font-bold tracking-tight">${state.provider.name || 'MON ENTREPRISE'}</h1>
+                                <p class="text-white/80 text-sm mt-1">${state.provider.email}</p>
+                                <p class="text-white/80 text-sm">${state.provider.phone}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <h2 class="text-4xl font-light tracking-widest text-white/90 uppercase">${docTypeName}</h2>
+                            <p class="text-white font-bold mt-1">N° ${state.meta.number}</p>
+                        </div>
+                    </div>
+                    <div class="p-[60px] flex-1 flex flex-col">
+                        <div class="flex flex-col md:flex-row justify-between mb-12 gap-8">
+                            <div class="flex-1">
+                                <p class="text-xs font-bold uppercase text-slate-400 mb-2">Facturer à</p>
+                                <div class="bg-slate-50 p-4 rounded-lg border-l-4" style="border-left-color: ${primary}">
+                                    <h3 class="font-bold text-lg text-slate-900">${state.client.name || "Client"}</h3>
+                                    <p class="text-sm text-slate-700 mt-1">${state.client.address || "Adresse"}</p>
+                                </div>
+                            </div>
+                            <div class="flex-1 flex flex-col items-end text-right justify-center">
+                                <div class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm w-full max-w-xs">
+                                    <span class="text-slate-500 font-medium">Date :</span><span class="font-bold text-slate-900">${state.meta.date}</span>
+                                    <span class="text-slate-500 font-medium">ID / RCCM :</span><span class="text-slate-900">${state.provider.id || '---'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-12 flex-1">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="text-white" style="background-color: ${primary}">
+                                        <th class="py-3 px-4 font-medium text-sm rounded-tl-lg">Description</th>
+                                        <th class="py-3 px-4 font-medium text-sm text-center">Quantité</th>
+                                        <th class="py-3 px-4 font-medium text-sm text-right">Prix Unitaire</th>
+                                        <th class="py-3 px-4 font-medium text-sm text-right rounded-tr-lg">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${state.items.map((i, index) => `
+                                        <tr class="${index % 2 === 0 ? 'bg-slate-50' : 'bg-white'} border-b border-slate-100">
+                                            <td class="py-4 px-4 font-bold text-slate-800">${i.name || '---'} ${i.description ? `<br><span class="text-xs text-slate-500 font-normal">${i.description.replace(/\n/g, '<br>')}</span>` : ''}</td>
+                                            <td class="py-4 px-4 text-center text-slate-600">${i.qty}</td>
+                                            <td class="py-4 px-4 text-right text-slate-600">${i.price.toFixed(2)} $</td>
+                                            <td class="py-4 px-4 text-right font-black text-slate-800">${(i.qty * i.price).toFixed(2)} $</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="flex justify-end mb-16">
+                            <div class="w-1/2">
+                                <div class="flex justify-between py-2 px-4 border-b border-slate-200"><span class="text-slate-600 font-medium">Prix sans taxe</span><span class="font-bold text-slate-900">${sub.toFixed(2)} $</span></div>
+                                <div class="flex justify-between py-2 px-4 border-b border-slate-200"><span class="text-slate-600 font-medium">Taxe (${state.vatRate}%)</span><span class="font-bold text-slate-900">${tax.toFixed(2)} $</span></div>
+                                <div class="flex justify-between py-3 px-4 text-white rounded-lg mt-4" style="background-color: ${primary}"><span class="font-bold text-lg">TOTAL TTC</span><span class="font-bold text-xl">${total.toFixed(2)} $</span></div>
+                            </div>
+                        </div>
+                        <div class="mt-auto border-t-2 border-slate-100 pt-6 flex flex-col gap-2 text-sm">
+                            <p class="font-bold text-slate-900 mb-1">Informations de paiement :</p>
+                            <p class="text-slate-600 whitespace-pre-line">${state.bankInfo || 'Payable à réception'}</p>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            else if (state.selectedTemplate === 'elegant') {
+                htmlContent = `
+                <div class="text-slate-800 relative" ${a4Wrapper}>
+                    <div class="absolute top-0 left-0 w-full h-4" style="background-color: ${primary}"></div>
+                    <div class="p-[60px] flex-1 flex flex-col mt-4 h-full">
+                        <div class="flex justify-between items-start mb-16">
+                            <div class="flex-1">
+                                ${state.logo ? `<img src="${state.logo}" class="max-h-24 w-auto object-contain mb-6" />` : `<h1 class="text-3xl font-light tracking-widest uppercase mb-6" style="color: ${primary}">${state.provider.name || 'MON ENTREPRISE'}</h1>`}
+                                <p class="text-sm text-slate-500 whitespace-pre-line">${state.provider.address || 'Adresse'}</p>
+                                <p class="text-sm text-slate-500 mt-2">${state.provider.phone} • ${state.provider.email}</p>
+                            </div>
+                            <div class="text-right flex-1">
+                                <h2 class="text-3xl font-semibold mb-2" style="color: ${primary}">${docTypeName}</h2>
+                                <p class="text-slate-400 font-medium text-lg mb-6">#${state.meta.number}</p>
+                                <div class="grid grid-cols-2 gap-4 text-sm text-right justify-end ml-auto max-w-[200px]">
+                                    <span class="text-slate-400">Date</span><span class="font-medium text-slate-800">${state.meta.date}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-16">
+                            <h3 class="text-xs font-bold uppercase tracking-widest mb-4" style="color: ${primary}">Facturé à</h3>
+                            <p class="font-medium text-lg text-slate-800">${state.client.name || "Client"}</p>
+                            <p class="text-sm text-slate-500 mt-1">${state.client.address}</p>
+                        </div>
+                        <div class="mb-12 flex-1">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr>
+                                        <th class="py-4 border-y border-slate-200 font-medium text-slate-400 text-sm uppercase tracking-wider">Description</th>
+                                        <th class="py-4 border-y border-slate-200 font-medium text-slate-400 text-sm uppercase tracking-wider text-center">Qté</th>
+                                        <th class="py-4 border-y border-slate-200 font-medium text-slate-400 text-sm uppercase tracking-wider text-right">Prix Un.</th>
+                                        <th class="py-4 border-y border-slate-200 font-medium text-slate-400 text-sm uppercase tracking-wider text-right">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${state.items.map(i => `
+                                        <tr class="border-b border-slate-100">
+                                            <td class="py-5 pr-4 text-slate-800 font-medium">${i.name || '---'}${i.description ? `<br><span class="text-xs text-slate-400 font-normal">${i.description.replace(/\n/g, '<br>')}</span>` : ''}</td>
+                                            <td class="py-5 px-4 text-center text-slate-500">${i.qty}</td>
+                                            <td class="py-5 px-4 text-right text-slate-500">${i.price.toFixed(2)} $</td>
+                                            <td class="py-5 px-4 text-right font-bold text-slate-800">${(i.qty * i.price).toFixed(2)} $</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="flex justify-end mb-16">
+                            <div class="w-64">
+                                <div class="flex justify-between py-2 text-slate-600"><span>Prix sans taxe</span><span>${sub.toFixed(2)} $</span></div>
+                                <div class="flex justify-between py-2 text-slate-600 mb-2"><span>Taxe (${state.vatRate}%)</span><span>${tax.toFixed(2)} $</span></div>
+                                <div class="flex justify-between py-4 border-t-2 border-slate-800"><span class="font-bold text-lg text-slate-800">TOTAL</span><span class="font-bold text-xl" style="color: ${primary}">${total.toFixed(2)} $</span></div>
+                            </div>
+                        </div>
+                        <div class="mt-auto">
+                            <h4 class="font-semibold text-slate-800 mb-2">Paiement & Notes</h4>
+                            <p class="text-slate-500 whitespace-pre-line text-sm leading-relaxed">${state.bankInfo || 'Payable à réception.'}</p>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            else if (state.selectedTemplate === 'bold') {
+                htmlContent = `
+                <div class="flex text-slate-800 flex-row" ${a4Wrapper}>
+                    <div class="w-1/3 text-white p-[40px] flex flex-col" style="background-color: ${primary}; min-height: 1123px;">
+                        ${state.logo 
+                            ? `<div class="bg-white p-4 rounded-xl mb-12 flex justify-center"><img src="${state.logo}" class="max-h-24 w-auto object-contain" /></div>` 
+                            : `<div class="w-20 h-20 bg-white text-4xl font-black rounded-2xl flex items-center justify-center mb-12 mx-auto" style="color: ${primary}">${(state.provider.name.charAt(0) || 'A').toUpperCase()}</div>`}
+                        
+                        <div class="mb-12">
+                            <h2 class="text-2xl font-bold mb-4">${state.provider.name || 'Mon Entreprise'}</h2>
+                            <p class="text-white/80 text-sm whitespace-pre-line mb-4 leading-relaxed">${state.provider.address || 'Adresse'}</p>
+                            <p class="text-white/80 text-sm">${state.provider.phone}</p>
+                            <p class="text-white/80 text-sm mt-1">${state.provider.email}</p>
+                        </div>
+                        <div class="mb-auto">
+                            <div><p class="text-white/50 text-xs uppercase tracking-widest mb-1">RCCM / ID</p><p class="text-sm font-medium">${state.provider.id || '---'}</p></div>
+                        </div>
+                        <div class="mt-12 pt-8 border-t border-white/20">
+                            <p class="text-white/50 text-xs uppercase tracking-widest mb-2">Infos Paiement</p>
+                            <p class="text-xs text-white/80 whitespace-pre-line leading-relaxed">${state.bankInfo || 'À réception'}</p>
+                        </div>
+                    </div>
+                    <div class="w-2/3 p-[50px] flex flex-col bg-white">
+                        <div class="flex justify-between items-end mb-12">
+                            <div><h1 class="text-5xl font-black text-slate-900 tracking-tighter mb-2 uppercase">${docTypeName}</h1><p class="text-xl text-slate-400 font-medium">#${state.meta.number}</p></div>
+                            <div class="text-right"><p class="text-sm text-slate-500 mb-1">Date : <span class="font-semibold text-slate-800">${state.meta.date}</span></p></div>
+                        </div>
+                        <div class="mb-12 p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Facturé à</p>
+                            <h3 class="font-bold text-xl text-slate-900 mb-1">${state.client.name || "Nom du client"}</h3>
+                            <p class="text-slate-600 text-sm">${state.client.address || "Adresse"}</p>
+                        </div>
+                        <div class="mb-12 flex-1">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr>
+                                        <th class="py-3 font-bold text-slate-900 border-b-2 border-slate-900 w-1/2">Désignation</th>
+                                        <th class="py-3 font-bold text-slate-900 border-b-2 border-slate-900 text-center">Qté</th>
+                                        <th class="py-3 font-bold text-slate-900 border-b-2 border-slate-900 text-right">P.U</th>
+                                        <th class="py-3 font-bold text-slate-900 border-b-2 border-slate-900 text-right">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${state.items.map(i => `
+                                        <tr class="border-b border-slate-100">
+                                            <td class="py-4 pr-4"><p class="font-bold text-slate-800">${i.name || '---'}</p>${i.description ? `<p class="text-xs text-slate-500 mt-1">${i.description.replace(/\n/g, '<br>')}</p>` : ''}</td>
+                                            <td class="py-4 px-2 text-center text-slate-600">${i.qty}</td>
+                                            <td class="py-4 px-2 text-right text-slate-600">${i.price.toFixed(2)} $</td>
+                                            <td class="py-4 px-2 text-right font-black text-slate-800">${(i.qty * i.price).toFixed(2)} $</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="flex flex-col items-end mt-auto">
+                            <div class="w-64 text-right mb-6">
+                                <div class="flex justify-between py-1 text-slate-500"><span>Prix sans taxe</span><span>${sub.toFixed(2)} $</span></div>
+                                <div class="flex justify-between py-1 text-slate-500"><span>Taxe (${state.vatRate}%)</span><span>${tax.toFixed(2)} $</span></div>
+                            </div>
+                            <div class="text-white p-6 rounded-2xl w-72 flex justify-between items-center shadow-lg" style="background-color: ${primary}">
+                                <span class="text-lg font-medium opacity-80">Total TTC</span><span class="text-3xl font-black">${total.toFixed(2)} $</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+
+            container.innerHTML = htmlContent;
+        }
+
+        // --- EVENTS DU DOM (SÉCURISÉS) ---
+        // Tous les écouteurs sont mis ici pour éviter les erreurs "Cannot set properties of null"
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            
+            initAuth();
+            
+            if(state.logo === 'Logo.png') {
+                const previewArea = document.getElementById('logo-preview-area');
+                const imgArea = document.getElementById('logo-img');
+                if (previewArea) previewArea.classList.remove('hidden');
+                if (imgArea) imgArea.src = 'Logo.png';
+            }
+
+            // Sync inputs auto
+            const fields = ['prov-name', 'prov-address', 'prov-phone', 'prov-email', 'prov-id', 'cli-name', 'cli-address', 'meta-number', 'meta-date', 'vat-rate', 'bank-info', 'primaryColor'];
+            fields.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.addEventListener('input', (e) => {
+                    const parts = id.split('-');
+                    if(parts[0] === 'prov') state.provider[parts[1]] = e.target.value;
+                    else if(parts[0] === 'cli') state.client[parts[1]] = e.target.value;
+                    else if(parts[0] === 'meta') state.meta[parts[1]] = e.target.value;
+                    else state[id === 'vat-rate' ? 'vatRate' : id] = (id === 'vat-rate' ? Number(e.target.value) : e.target.value);
+                    renderPreview();
+                });
+            });
+            
+            // Appliquer templates
+            document.querySelectorAll('.template-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    state.selectedTemplate = btn.dataset.template;
+                    renderPreview();
+                });
+            });
+
+            // Upload de Logos
+            const logoInput = document.getElementById('logo-input');
+            if (logoInput) {
+                logoInput.addEventListener('change', (e) => {
+                    const f = e.target.files[0];
+                    if (!f) return;
+                    const r = new FileReader();
+                    r.onload = (event) => {
+                        state.logo = event.target.result;
+                        const logoPreview = document.getElementById('logo-preview-area');
+                        const logoImg = document.getElementById('logo-img');
+                        if(logoPreview) logoPreview.classList.remove('hidden');
+                        if(logoImg) logoImg.src = state.logo;
+                        renderPreview();
+                    };
+                    r.readAsDataURL(f);
+                });
+            }
+
+            const chatLogoInput = document.getElementById('chat-logo-input');
+            if (chatLogoInput) {
+                chatLogoInput.addEventListener('change', (e) => {
+                    const f = e.target.files[0];
+                    if (!f) return;
+                    const r = new FileReader();
+                    r.onload = (event) => {
+                        state.logo = event.target.result;
+                        addChatMessage('user', "🖼️ Logo ajouté !");
+                        const chatLogoUpload = document.getElementById('chat-logo-upload');
+                        if(chatLogoUpload) chatLogoUpload.classList.add('hidden');
+                        currentStep++;
+                        showNextStep();
+                    };
+                    r.readAsDataURL(f);
+                });
+            }
+
+            // Gestion de l'authentification (Formulaire)
+            const loginForm = document.getElementById('login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const email = document.getElementById('login-email').value;
+                    const name = document.getElementById('login-company').value;
+                    
+                    currentUser = {
+                        name: name, email: email, address: "", phone: "", id: "",
+                        color: "#0a1b4f", vatRate: 0, bankInfo: ""
+                    };
+                    localStorage.setItem('avencia_user', JSON.stringify(currentUser));
+                    initAuth();
+                });
+            }
+
+            // Formulaire Profil
+            const profileForm = document.getElementById('profile-form');
+            if (profileForm) {
+                profileForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    currentUser = {
+                        ...currentUser,
+                        name: document.getElementById('prof-name').value,
+                        email: document.getElementById('prof-email').value,
+                        address: document.getElementById('prof-address').value,
+                        phone: document.getElementById('prof-phone').value,
+                        id: document.getElementById('prof-id').value,
+                        color: document.getElementById('prof-color').value,
+                        vatRate: Number(document.getElementById('prof-vat').value),
+                        bankInfo: document.getElementById('prof-bank').value
+                    };
+                    localStorage.setItem('avencia_user', JSON.stringify(currentUser));
+                    
+                    const sidebarCompany = document.getElementById('sidebar-company');
+                    const sidebarAvatar = document.getElementById('sidebar-avatar');
+                    if (sidebarCompany) sidebarCompany.innerText = currentUser.name;
+                    if (sidebarAvatar) sidebarAvatar.innerText = currentUser.name.charAt(0);
+                    
+                    showToast("Profil mis à jour", "Vos paramètres par défaut ont été enregistrés.");
+                    loadProfileToState(); 
+                });
+            }
+
+            // Formulaire de Chat
+            const chatForm = document.getElementById('chat-form');
+            if (chatForm) {
+                chatForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const input = document.getElementById('chat-input');
+                    const val = input.value.trim();
+                    if (!val) return;
+                    addChatMessage('user', val);
+                    input.value = '';
+                    processStep(chatSteps[currentStep], val);
+                });
+            }
+
+            const modeDouble = document.getElementById('mode-double');
+            if (modeDouble) modeDouble.onclick = () => setUIMode('double');
+
+            const modeEasy = document.getElementById('mode-easy');
+            if (modeEasy) modeEasy.onclick = () => setUIMode('easy');
+
+            const modeChat = document.getElementById('mode-chat');
+            if (modeChat) modeChat.onclick = () => setUIMode('chat');
+
+            const typeQuote = document.getElementById('type-quote');
+            if (typeQuote) typeQuote.onclick = () => switchDocType('quote');
+
+            const typeInvoice = document.getElementById('type-invoice');
+            if (typeInvoice) typeInvoice.onclick = () => switchDocType('invoice');
+
+        });
+
+        // --- FONCTIONS CLASSIQUES ACCESSIBLES ---
+        let chatSteps = [
+            { id: 'type', q: "Bonjour ! On commence ? Voulez-vous créer un **Devis** ou une **Facture** ?", validate: v => ['devis', 'facture'].includes(v.toLowerCase()) },
+            { id: 'prov_name', q: "Quel est le **nom de votre commerce** ou entreprise ?", validate: v => v.length > 1 },
+            { id: 'prov_address', q: "Quelle est **votre adresse** complète ?", validate: v => v.length > 5 },
+            { id: 'prov_contact', q: "Quel est votre **numéro de téléphone** ?", validate: v => v.length > 5 },
+            { id: 'prov_id', q: "Votre numéro d'entreprise (Ex: RCCM ou SIRET) ?", validate: v => v.length > 2 },
+            { id: 'logo', q: "Voulez-vous ajouter un **logo** ? J'utilise `Logo.png` par défaut. Utilisez le bouton ci-dessus pour envoyer un autre logo, ou écrivez 'Non'.", type: 'file' },
+            { id: 'cli_name', q: "D'accord. Quel est le **nom de votre client** ?", validate: v => v.length > 1 },
+            { id: 'cli_address', q: "Quelle est **l'adresse du client** ?", validate: v => v.length > 3 },
+            { id: 'item_name', q: "C'est quoi le **produit ou le service** que vous vendez ?", validate: v => v.length > 2 },
+            { id: 'item_qty', q: "C'est quelle **quantité** ?", validate: v => !isNaN(v) && Number(v) > 0 },
+            { id: 'item_price', q: "C'est quel **prix pour un seul** (sans taxe) ?", validate: v => !isNaN(v) && Number(v) >= 0 },
+            { id: 'vat', q: "Quel est le pourcentage de **Taxe / TVA** ? (Répondez 0 si pas de taxe)", validate: v => !isNaN(v) },
+            { id: 'bank', q: "Vos **infos de paiement** ? (Banque, N° de compte, Mobile Money...)", validate: v => v.length > 5 },
+            { id: 'finish', q: "C'est prêt ! Je télécharge le PDF maintenant ? (Oui/Non)", validate: v => true }
+        ];
+
+        function addChatMessage(sender, text) {
+            const container = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            div.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-2`;
+            div.innerHTML = `<div class="${sender === 'user' ? 'chat-bubble-user' : 'chat-bubble-bot'} px-4 py-2 max-w-[85%] text-sm shadow-sm animate-logo">${text}</div>`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function processStep(step, val) {
+            if (step.id === 'logo' && val.toLowerCase() === 'non') { currentStep++; showNextStep(); return; }
+            
+            if (step.validate && !step.validate(val)) {
+                setTimeout(() => addChatMessage('bot', "⚠️ Je n'ai pas compris. Écrivez l'info correctement s'il vous plaît."), 500);
+                return;
+            }
+
+            if (step.id === 'type') switchDocType(val.toLowerCase() === 'devis' ? 'quote' : 'invoice');
+            if (step.id === 'prov_name') updateNested('provider', 'name', val);
+            if (step.id === 'prov_address') updateNested('provider', 'address', val);
+            if (step.id === 'prov_contact') updateNested('provider', 'phone', val);
+            if (step.id === 'prov_id') updateNested('provider', 'id', val);
+            if (step.id === 'cli_name') updateNested('client', 'name', val);
+            if (step.id === 'cli_address') updateNested('client', 'address', val);
+            if (step.id === 'item_name') updateItem(state.items[0].id, 'name', val);
+            if (step.id === 'item_qty') updateItem(state.items[0].id, 'qty', val);
+            if (step.id === 'item_price') updateItem(state.items[0].id, 'price', val);
+            if (step.id === 'vat') updateState('vatRate', Number(val));
+            if (step.id === 'bank') updateState('bankInfo', val);
+            if (step.id === 'finish' && val.toLowerCase().includes('oui')) generatePDF();
+
+            currentStep++;
+            showNextStep();
+        }
+
+        function showNextStep() {
+            if (currentStep < chatSteps.length) {
+                if(chatSteps[currentStep].id === 'logo') {
+                    const chatLogoUpload = document.getElementById('chat-logo-upload');
+                    if (chatLogoUpload) chatLogoUpload.classList.remove('hidden');
+                }
+                setTimeout(() => addChatMessage('bot', chatSteps[currentStep].q), 600);
+            } else {
+                addChatMessage('bot', "C'est fini ! Téléchargez le PDF ou passez en mode Aperçu pour voir le résultat.");
+            }
+        }
+
+        const removeLogo = () => { 
+            state.logo = null; 
+            const previewArea = document.getElementById('logo-preview-area');
+            if(previewArea) previewArea.classList.add('hidden'); 
+            renderPreview(); 
+        };
+
+        const resetChat = () => { 
+            currentStep = 0; 
+            const chatMsgs = document.getElementById('chat-messages');
+            if(chatMsgs) chatMsgs.innerHTML = ''; 
+            showNextStep(); 
+        };
+    </script>
+</body>
+</html>
