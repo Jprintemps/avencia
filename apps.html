@@ -2,8 +2,8 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avencia - Devis & Factures Professionnels</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Avencia - Facturation & Comptabilité</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,7 +11,7 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- Librairies pour le PDF -->
+    <!-- Librairies pour le PDF : Le combo fiable html2canvas + jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -25,10 +25,10 @@
         input, textarea { user-select: text !important; -webkit-user-select: text !important; }
         
         .input-field {
-            background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem;
-            padding: 0.625rem 0.875rem; font-size: 0.875rem; outline: none; transition: all 0.2s; width: 100%;
+            background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.75rem;
+            padding: 0.75rem 1rem; font-size: 0.875rem; outline: none; transition: all 0.2s; width: 100%;
         }
-        .input-field:focus { background-color: #ffffff; border-color: #0a1b4f; box-shadow: 0 0 0 2px rgba(10, 27, 79, 0.1); }
+        .input-field:focus { background-color: #ffffff; border-color: #0a1b4f; box-shadow: 0 0 0 2px rgba(10, 27, 79, 0.15); }
         
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -36,8 +36,16 @@
 
         @media print { body { background: white; } .no-print { display: none !important; } }
 
+        /* Boutons de navigation Desktop */
         .template-btn.active { border-color: #0a1b4f; background-color: #f8fafc; color: #0a1b4f; }
         .mode-btn.active { background-color: #fff; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); color: #0a1b4f; }
+        
+        /* Boutons de navigation Mobile (Bottom Nav) */
+        .mob-nav-btn { transition: color 0.2s ease; }
+        .mob-nav-btn.active { color: #0a1b4f; }
+        .mob-nav-btn.active .icon-wrapper { background-color: #f1f5f9; transform: scale(1.1); color: #0a1b4f; }
+        .mob-nav-btn .icon-wrapper { transition: all 0.2s ease; border-radius: 0.75rem; padding: 0.375rem; color: #94a3b8; }
+
         .type-btn.active { background-color: #0a1b4f; color: white; border-color: #0a1b4f; }
         .nav-link.active { background-color: #f1f5f9; color: #0a1b4f; font-weight: 600; border-right: 3px solid #0a1b4f; }
         
@@ -57,7 +65,6 @@
             justify-content: center;
             width: 100%;
             min-width: max-content;
-            padding-bottom: 2rem;
         }
 
         #invoice-preview {
@@ -68,19 +75,12 @@
         }
 
         /* Zoom arrière intelligent pour les petits écrans */
-        @media (max-width: 1024px) {
-            #invoice-preview { zoom: 0.65; }
-            .preview-wrapper { min-width: auto; }
-        }
-        @media (max-width: 768px) {
-            #invoice-preview { zoom: 0.60; }
-        }
-        @media (max-width: 500px) {
-            #invoice-preview { zoom: 0.45; }
-        }
-        @media (max-width: 380px) {
-            #invoice-preview { zoom: 0.38; }
-        }
+        @media (max-width: 1024px) { #invoice-preview { zoom: 0.65; } .preview-wrapper { min-width: auto; } }
+        @media (max-width: 768px) { #invoice-preview { zoom: 0.50; } }
+        @media (max-width: 500px) { #invoice-preview { zoom: 0.42; } }
+        @media (max-width: 380px) { #invoice-preview { zoom: 0.35; } }
+        
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 16px); }
     </style>
 </head>
 <body class="h-screen flex text-slate-800 no-select" oncontextmenu="return false;">
@@ -90,7 +90,7 @@
         <div class="mb-8 flex justify-center">
             <img src="Logo.png" alt="Logo de l'application" class="h-20 md:h-24 object-contain" onerror="this.onerror=null; this.outerHTML='<h1 class=\'font-black text-4xl tracking-tight text-[#0a1b4f]\'>AVENCIA</h1>'">
         </div>
-        <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-200 w-full max-w-md">
+        <div class="bg-white p-6 md:p-8 rounded-2xl shadow-xl border border-slate-200 w-[90%] max-w-md">
             <h2 class="text-2xl font-bold text-center text-slate-800 mb-2">Bienvenue</h2>
             <p class="text-center text-slate-500 mb-8 text-sm">Connectez-vous à votre espace SaaS</p>
             
@@ -107,7 +107,7 @@
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Mot de passe</label>
                     <input type="password" id="login-password" class="input-field" placeholder="••••••••" required />
                 </div>
-                <button type="submit" class="w-full bg-[#0a1b4f] hover:bg-[#071336] text-white py-3 rounded-xl font-bold transition-all shadow-md mt-4">
+                <button type="submit" class="w-full bg-[#0a1b4f] hover:bg-[#071336] text-white py-3.5 rounded-xl font-bold transition-all shadow-md mt-4 active:scale-[0.98]">
                     Se connecter / S'inscrire
                 </button>
             </form>
@@ -115,7 +115,7 @@
     </div>
 
     <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="fixed bottom-6 right-6 bg-green-500 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 z-[100] toast-hidden">
+    <div id="toast" class="fixed bottom-24 md:bottom-6 right-4 md:right-6 bg-green-500 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 z-[100] toast-hidden">
         <i data-lucide="check-circle" class="w-5 h-5"></i>
         <div>
             <p class="font-bold text-sm" id="toast-title">Succès</p>
@@ -123,11 +123,42 @@
         </div>
     </div>
 
+    <!-- MENU MOBILE (DRAWER) -->
+    <div id="mobile-menu-overlay" class="fixed inset-0 bg-slate-900/50 z-[150] hidden opacity-0 transition-opacity duration-300">
+        <div id="mobile-menu-drawer" class="w-64 bg-white h-full flex flex-col shadow-2xl transform -translate-x-full transition-transform duration-300">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                <img src="Logo.png" alt="Logo" class="h-8 object-contain" onerror="this.onerror=null; this.outerHTML='<span class=\'font-bold text-xl tracking-tight text-[#0a1b4f]\'>AVENCIA</span>'">
+                <button onclick="toggleMobileMenu()" class="p-2 text-slate-400 hover:text-slate-700 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <nav class="flex-1 py-4 flex flex-col gap-1 overflow-y-auto">
+                <button onclick="switchAppView('documents'); toggleMobileMenu()" id="mob-nav-documents" class="nav-link flex items-center gap-3 px-6 py-3 text-slate-500 hover:bg-slate-50 w-full text-left">
+                    <i data-lucide="folder-open" class="w-5 h-5"></i><span>Mes Documents</span>
+                </button>
+                <button onclick="switchAppView('editor'); toggleMobileMenu()" id="mob-nav-editor" class="nav-link flex items-center gap-3 px-6 py-3 text-slate-500 hover:bg-slate-50 w-full text-left">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i><span>Créer Devis/Facture</span>
+                </button>
+                <div class="my-2 border-t border-slate-100 mx-4"></div>
+                <button onclick="switchAppView('profile'); toggleMobileMenu()" id="mob-nav-profile" class="nav-link flex items-center gap-3 px-6 py-3 text-slate-500 hover:bg-slate-50 w-full text-left">
+                    <i data-lucide="user" class="w-5 h-5"></i><span>Mon Profil</span>
+                </button>
+            </nav>
+            <div class="p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <div id="mob-sidebar-avatar" class="w-8 h-8 bg-[#0a1b4f] rounded-full flex shrink-0 items-center justify-center text-white font-bold text-xs">M</div>
+                    <div class="overflow-hidden">
+                        <p id="mob-sidebar-company" class="text-xs font-bold text-slate-800 truncate">Entreprise</p>
+                    </div>
+                </div>
+                <button onclick="handleLogout()" class="text-slate-400 hover:text-red-500 transition-colors shrink-0 p-2"><i data-lucide="log-out" class="w-4 h-4"></i></button>
+            </div>
+        </div>
+    </div>
+
     <!-- WRAPPER APPLICATION -->
     <div id="app-wrapper" class="flex h-screen w-full hidden">
         
-        <!-- SIDEBAR (MENU LATÉRAL) -->
-        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col hidden md:flex z-50">
+        <!-- SIDEBAR DESKTOP -->
+        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col hidden md:flex z-50 shadow-sm">
             <div class="p-6 border-b border-slate-100 flex items-center justify-center h-[88px]">
                 <img src="Logo.png" alt="Logo" class="h-10 w-full object-contain" onerror="this.onerror=null; this.outerHTML='<span class=\'font-bold text-2xl tracking-tight text-[#0a1b4f]\'>AVENCIA</span>'">
             </div>
@@ -156,7 +187,7 @@
                             <p class="text-[10px] text-slate-500">Plan Gratuit</p>
                         </div>
                     </div>
-                    <button onclick="handleLogout()" class="text-slate-400 hover:text-red-500 transition-colors shrink-0" title="Se déconnecter">
+                    <button onclick="handleLogout()" class="text-slate-400 hover:text-red-500 transition-colors shrink-0 p-2" title="Se déconnecter">
                         <i data-lucide="log-out" class="w-4 h-4"></i>
                     </button>
                 </div>
@@ -164,34 +195,40 @@
         </aside>
 
         <!-- CONTENU PRINCIPAL -->
-        <div class="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50/50">
+        <div class="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50/50 relative">
             
             <!-- HEADER GLOBAL -->
-            <header class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center z-40">
+            <header class="bg-white border-b border-slate-200 px-4 md:px-6 py-3 md:py-4 flex justify-between items-center z-40 shadow-sm">
                 
-                <!-- Remplacement par le logo pour version mobile -->
-                <div class="md:hidden flex items-center gap-2">
-                    <img src="Logo.png" alt="Logo" class="h-8 object-contain" onerror="this.onerror=null; this.outerHTML='<span class=\'font-bold text-lg text-[#0a1b4f]\'>AVENCIA</span>'">
+                <!-- Vue Mobile : Menu Hamburger + Logo -->
+                <div class="md:hidden flex items-center gap-3">
+                    <button onclick="toggleMobileMenu()" class="p-2 -ml-2 text-slate-600 rounded-lg active:bg-slate-100">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                    <img src="Logo.png" alt="Logo" class="h-7 object-contain" onerror="this.onerror=null; this.outerHTML='<span class=\'font-bold text-lg text-[#0a1b4f]\'>AVENCIA</span>'">
                 </div>
 
+                <!-- Vue Desktop : Titre -->
                 <h2 id="top-title" class="font-bold text-xl text-slate-800 hidden md:block">Mes Documents</h2>
                 
+                <!-- Toolbar Éditeur (Desktop Seulement) -->
                 <div id="editor-toolbar" class="hidden flex items-center gap-4 ml-auto">
-                    <div class="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
+                    <div class="hidden lg:flex bg-slate-100 p-1 rounded-lg border border-slate-200">
                         <button id="mode-double" class="mode-btn active px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 text-slate-500"><i data-lucide="layout" class="w-4 h-4"></i> Aperçu direct</button>
                         <button id="mode-easy" class="mode-btn px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 text-slate-500"><i data-lucide="align-left" class="w-4 h-4"></i> Formulaire simple</button>
                         <button id="mode-chat" class="mode-btn px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 text-slate-500"><i data-lucide="message-square" class="w-4 h-4"></i> Discuter</button>
                     </div>
-                    <button onclick="generatePDF()" class="bg-[#0a1b4f] hover:bg-[#071336] text-white px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 shadow-sm transition-colors">
+                    <!-- Bouton Save Desktop -->
+                    <button onclick="generatePDF()" class="hidden md:flex bg-[#0a1b4f] hover:bg-[#071336] text-white px-5 py-2.5 rounded-lg font-medium items-center gap-2 shadow-sm transition-colors">
                         <i data-lucide="file-down" class="w-4 h-4 generate-icon"></i>
                         <i data-lucide="loader-2" class="w-4 h-4 animate-spin hidden loading-icon"></i>
-                        <span class="btn-text hidden md:inline">Générer & Sauvegarder</span>
-                        <span class="btn-text md:hidden">Sauvegarder</span>
+                        <span class="btn-text">Générer le PDF</span>
                     </button>
                 </div>
                 
+                <!-- Toolbar Documents -->
                 <div id="documents-toolbar" class="flex items-center gap-4 ml-auto">
-                    <button onclick="switchAppView('editor')" class="bg-[#0a1b4f] hover:bg-[#071336] text-white px-4 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 shadow-sm">
+                    <button onclick="switchAppView('editor')" class="bg-[#0a1b4f] hover:bg-[#071336] text-white px-4 py-2 md:py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 shadow-sm active:scale-95 transition-transform">
                         <i data-lucide="plus" class="w-4 h-4"></i> <span class="hidden md:inline">Nouveau document</span><span class="md:hidden">Nouveau</span>
                     </button>
                 </div>
@@ -200,31 +237,31 @@
             <!-- VUE 1 : MES DOCUMENTS -->
             <div id="view-documents" class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
                 <div class="max-w-6xl mx-auto">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
-                        <p class="text-slate-500 text-sm md:text-base">Gérez vos devis, suivez vos factures et relancez vos clients en un clic.</p>
-                        <div class="flex gap-2">
-                            <button onclick="filterDocs('all')" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-300">Tous</button>
-                            <button onclick="filterDocs('quote')" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-50">Devis</button>
-                            <button onclick="filterDocs('invoice')" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-50">Factures</button>
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
+                        <p class="text-slate-500 text-sm">Gérez vos devis, suivez vos factures et relancez vos clients en un clic.</p>
+                        <div class="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+                            <button onclick="filterDocs('all')" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-300 whitespace-nowrap">Tous</button>
+                            <button onclick="filterDocs('quote')" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-50 whitespace-nowrap">Devis</button>
+                            <button onclick="filterDocs('invoice')" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-50 whitespace-nowrap">Factures</button>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-20 md:mb-0">
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-sm whitespace-nowrap">
                                 <thead class="bg-slate-50 text-slate-500">
                                     <tr>
-                                        <th class="px-6 py-4 font-medium">Statut</th>
-                                        <th class="px-6 py-4 font-medium">Document</th>
-                                        <th class="px-6 py-4 font-medium">Client</th>
-                                        <th class="px-6 py-4 font-medium text-right">Montant</th>
-                                        <th class="px-6 py-4 font-medium text-center">Actions</th>
+                                        <th class="px-4 md:px-6 py-4 font-medium">Statut</th>
+                                        <th class="px-4 md:px-6 py-4 font-medium">Document</th>
+                                        <th class="px-4 md:px-6 py-4 font-medium">Client</th>
+                                        <th class="px-4 md:px-6 py-4 font-medium text-right">Montant</th>
+                                        <th class="px-4 md:px-6 py-4 font-medium text-center">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="history-list" class="divide-y divide-slate-100"></tbody>
                             </table>
                         </div>
-                        <div id="empty-history" class="hidden flex flex-col items-center justify-center py-16 text-slate-400">
+                        <div id="empty-history" class="hidden flex flex-col items-center justify-center py-16 text-slate-400 px-4 text-center">
                             <i data-lucide="folder-search" class="w-16 h-16 mb-4 opacity-50"></i>
                             <p class="font-medium text-lg text-slate-600 mb-1">Aucun document trouvé</p>
                             <button onclick="switchAppView('editor')" class="text-[#0a1b4f] font-bold underline mt-2">Créer mon premier document</button>
@@ -233,13 +270,13 @@
                 </div>
             </div>
 
-            <!-- VUE 2 : PROFIL UTILISATEUR (PARAMÈTRES) -->
+            <!-- VUE 2 : PROFIL UTILISATEUR -->
             <div id="view-profile" class="hidden flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
-                <div class="max-w-4xl mx-auto">
-                    <p class="text-slate-500 mb-8 text-sm md:text-base">Ces informations seront utilisées par défaut sur toutes vos futures factures et devis.</p>
+                <div class="max-w-4xl mx-auto mb-20 md:mb-0">
+                    <p class="text-slate-500 mb-6 text-sm">Ces informations seront utilisées par défaut sur toutes vos futures factures et devis.</p>
                     
                     <form id="profile-form" class="space-y-6">
-                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="bg-white p-5 md:p-6 rounded-2xl border border-slate-200 shadow-sm">
                             <h3 class="font-bold text-lg text-slate-800 mb-4 border-b border-slate-100 pb-2">Informations de l'entreprise</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="col-span-full">
@@ -265,7 +302,7 @@
                             </div>
                         </div>
 
-                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="bg-white p-5 md:p-6 rounded-2xl border border-slate-200 shadow-sm">
                             <h3 class="font-bold text-lg text-slate-800 mb-4 border-b border-slate-100 pb-2">Préférences de facturation</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
@@ -286,8 +323,8 @@
                             </div>
                         </div>
 
-                        <div class="flex justify-end pt-4 pb-12">
-                            <button type="submit" class="w-full md:w-auto bg-[#0a1b4f] hover:bg-[#071336] text-white px-8 py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg transition-colors">
+                        <div class="flex justify-end pt-2 pb-8">
+                            <button type="submit" class="w-full md:w-auto bg-[#0a1b4f] hover:bg-[#071336] text-white px-8 py-4 md:py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg transition-colors active:scale-95">
                                 <i data-lucide="save" class="w-5 h-5"></i> Enregistrer les modifications
                             </button>
                         </div>
@@ -296,13 +333,25 @@
             </div>
 
             <!-- VUE 3 : ÉDITEUR DE DOCUMENT -->
-            <!-- Modification pour autoriser le scroll global sur mobile -->
-            <div id="view-editor" class="hidden flex-1 flex flex-col lg:flex-row gap-8 p-4 lg:p-8 overflow-y-auto lg:overflow-hidden h-full">
+            <div id="view-editor" class="hidden flex-1 flex flex-col lg:flex-row gap-4 lg:gap-8 p-4 lg:p-8 pb-24 lg:pb-8 overflow-y-auto lg:overflow-hidden h-full relative">
                 
-                <section id="editor-section" class="w-full lg:w-5/12 flex flex-col gap-6 lg:overflow-y-auto pr-2 no-print custom-scrollbar flex-shrink-0">
+                <!-- BOUTON SAUVEGARDE FLOTTANT (MOBILE UNIQUEMENT, VISIBLE EN MODE APERÇU) -->
+                <button onclick="generatePDF()" id="fab-save" class="md:hidden fixed bottom-24 right-4 bg-[#0a1b4f] text-white w-14 h-14 rounded-full shadow-[0_8px_30px_rgb(10,27,79,0.4)] flex items-center justify-center z-[60] active:scale-90 transition-transform hidden">
+                    <i data-lucide="file-down" class="w-6 h-6 generate-icon"></i>
+                    <i data-lucide="loader-2" class="w-6 h-6 animate-spin hidden loading-icon"></i>
+                </button>
+
+                <!-- SECTION FORMULAIRE -->
+                <section id="editor-section" class="hidden lg:flex w-full lg:w-5/12 flex-col gap-6 lg:overflow-y-auto pr-2 no-print custom-scrollbar flex-shrink-0 pb-10">
+                    
+                    <div class="md:hidden bg-blue-50 text-blue-800 p-4 rounded-xl border border-blue-100 flex items-start gap-3">
+                        <i data-lucide="info" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                        <p class="text-sm">Remplissez les informations ci-dessous, puis appuyez sur <strong>Aperçu</strong> en bas pour voir et télécharger le PDF.</p>
+                    </div>
+
                     <!-- Type Doc -->
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                        <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider"><i data-lucide="file-question" class="w-4 h-4"></i> Document</h2>
+                    <div class="bg-white p-5 md:p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider"><i data-lucide="file-question" class="w-4 h-4"></i> Type de document</h2>
                         <div class="flex gap-4">
                             <button id="type-quote" class="type-btn active flex-1 py-3 rounded-lg border-2 font-bold transition-all text-xs">DEVIS</button>
                             <button id="type-invoice" class="type-btn flex-1 py-3 rounded-lg border-2 font-bold transition-all text-xs">FACTURE</button>
@@ -310,7 +359,7 @@
                     </div>
 
                     <!-- Modèles & Couleurs -->
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="bg-white p-5 md:p-6 rounded-xl border border-slate-200 shadow-sm">
                         <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider"><i data-lucide="palette" class="w-4 h-4"></i> Style du document</h2>
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-5" id="template-selector">
                             <button data-template="modern" class="template-btn active py-3 px-2 rounded-lg border-2 border-slate-100 text-xs font-bold transition-all">Moderne</button>
@@ -325,36 +374,12 @@
                         </div>
                     </div>
 
-                    <!-- Mes Infos -->
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                        <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider"><i data-lucide="building-2" class="w-4 h-4"></i> Mes informations</h2>
-                        <div class="grid grid-cols-1 gap-4">
-                            <div id="logo-section" class="relative">
-                                <label id="logo-upload-zone" for="logo-input" class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50">
-                                    <i data-lucide="image-plus" class="w-5 h-5 text-slate-300 mb-1"></i><p class="text-[10px] text-slate-400 mt-2">Cliquez pour ajouter un logo</p>
-                                    <input type="file" id="logo-input" class="hidden" accept="image/*" />
-                                </label>
-                                <div id="logo-preview-area" class="hidden absolute inset-0 bg-white border-2 border-slate-100 rounded-xl flex items-center justify-between p-3 z-10">
-                                    <img id="logo-img" src="" class="h-14 w-auto object-contain" />
-                                    <button onclick="removeLogo()" class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
-                                </div>
-                            </div>
-                            <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Mon Entreprise</label><input type="text" id="prov-name" class="input-field" /></div>
-                            <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Adresse</label><textarea id="prov-address" class="input-field h-16"></textarea></div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Tél</label><input type="text" id="prov-phone" class="input-field" /></div>
-                                <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Email</label><input type="email" id="prov-email" class="input-field" /></div>
-                            </div>
-                            <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">ID (RCCM...)</label><input type="text" id="prov-id" class="input-field" /></div>
-                        </div>
-                    </div>
-
                     <!-- Client -->
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                        <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider"><i data-lucide="user" class="w-4 h-4"></i> Client</h2>
+                    <div class="bg-white p-5 md:p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider"><i data-lucide="user" class="w-4 h-4"></i> À l'attention du Client</h2>
                         <div class="grid grid-cols-1 gap-4">
-                            <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Nom du client</label><input type="text" id="cli-name" class="input-field" /></div>
-                            <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Son adresse</label><input type="text" id="cli-address" class="input-field" /></div>
+                            <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Nom du client</label><input type="text" id="cli-name" class="input-field" placeholder="Nom de l'entreprise ou personne" /></div>
+                            <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Son adresse</label><input type="text" id="cli-address" class="input-field" placeholder="Adresse complète" /></div>
                             <div class="grid grid-cols-2 gap-2">
                                 <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1 text-prefix">N° Devis</label><input type="text" id="meta-number" class="input-field" /></div>
                                 <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Date</label><input type="date" id="meta-date" class="input-field" /></div>
@@ -363,65 +388,97 @@
                     </div>
 
                     <!-- Vente -->
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                        <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider"><i data-lucide="shopping-bag" class="w-4 h-4"></i> Ventes</h2>
-                        <div id="items-container" class="space-y-3"></div>
-                        <button onclick="addItem()" class="mt-4 w-full py-2 border border-dashed border-slate-300 rounded-lg text-slate-400 hover:text-slate-600 flex items-center justify-center gap-2 text-xs font-medium">
-                            <i data-lucide="plus" class="w-3 h-3"></i> Ajouter un article
+                    <div class="bg-white p-5 md:p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider"><i data-lucide="shopping-bag" class="w-4 h-4"></i> Prestations / Ventes</h2>
+                        <div id="items-container" class="space-y-4"></div>
+                        <button onclick="addItem()" class="mt-5 w-full py-3 border-2 border-dashed border-[#0a1b4f] bg-blue-50 text-[#0a1b4f] rounded-xl hover:bg-blue-100 transition-colors flex items-center justify-center gap-2 text-sm font-bold shadow-sm">
+                            <i data-lucide="plus" class="w-5 h-5"></i> Ajouter une ligne de facturation
                         </button>
                     </div>
 
-                    <!-- Paiement -->
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-10">
-                        <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider"><i data-lucide="credit-card" class="w-4 h-4"></i> Paiement</h2>
-                        <div class="space-y-4">
+                    <!-- Mes Infos -->
+                    <div class="bg-white p-5 md:p-6 rounded-xl border border-slate-200 shadow-sm mb-4">
+                        <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider"><i data-lucide="building-2" class="w-4 h-4"></i> Mes infos & Paiement</h2>
+                        <div class="grid grid-cols-1 gap-4">
                             <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Taxe / TVA (%)</label><input type="number" id="vat-rate" class="input-field" value="0" /></div>
-                            <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Infos Bancaires</label><textarea id="bank-info" class="input-field h-20"></textarea></div>
+                            <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Mon nom / Entreprise</label><input type="text" id="prov-name" class="input-field" /></div>
+                            <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Adresse</label><textarea id="prov-address" class="input-field h-12"></textarea></div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Tél</label><input type="text" id="prov-phone" class="input-field" /></div>
+                                <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Email</label><input type="email" id="prov-email" class="input-field" /></div>
+                            </div>
+                            <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">ID (RCCM...)</label><input type="text" id="prov-id" class="input-field" /></div>
+                            <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Infos Bancaires</label><textarea id="bank-info" class="input-field h-16"></textarea></div>
+                            <div id="logo-section" class="relative mt-2">
+                                <label id="logo-upload-zone" for="logo-input" class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50">
+                                    <i data-lucide="image-plus" class="w-5 h-5 text-slate-300 mb-1"></i><p class="text-[10px] text-slate-400 mt-1">Changer le logo</p>
+                                    <input type="file" id="logo-input" class="hidden" accept="image/*" />
+                                </label>
+                                <div id="logo-preview-area" class="hidden absolute inset-0 bg-white border-2 border-slate-100 rounded-xl flex items-center justify-between p-3 z-10">
+                                    <img id="logo-img" src="" class="h-12 w-auto object-contain" />
+                                    <button onclick="removeLogo()" class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-
-                    <div id="easy-mode-btn-container" class="mt-4 mb-12 hidden px-2">
-                        <button onclick="generatePDF()" class="w-full bg-[#0a1b4f] text-white py-5 rounded-xl font-bold flex items-center justify-center gap-3 shadow-xl text-lg">
-                            <i data-lucide="file-down" class="w-6 h-6 generate-icon"></i>
-                            <i data-lucide="loader-2" class="w-6 h-6 animate-spin hidden loading-icon"></i>
-                            <span class="btn-text">Générer le document</span>
+                    
+                    <!-- Guidance Mobile : Bouton vers Aperçu -->
+                    <div class="md:hidden mt-2 mb-8">
+                        <button onclick="setUIMode('double')" class="w-full bg-slate-800 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform">
+                            Suivant : Voir l'aperçu <i data-lucide="arrow-right" class="w-5 h-5"></i>
                         </button>
                     </div>
+
                 </section>
 
                 <!-- SECTION CHAT -->
-                <section id="chat-section" class="hidden w-full max-w-2xl mx-auto flex flex-col bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden no-print h-full flex-shrink-0">
-                    <div class="bg-[#0a1b4f] p-5 flex items-center gap-4 shrink-0">
-                        <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center shadow-inner"><i data-lucide="bot" class="text-white w-7 h-7"></i></div>
-                        <div><h3 class="text-white font-bold">Assistant Avencia</h3><p class="text-white/50 text-xs italic">Créons votre document en discutant.</p></div>
+                <section id="chat-section" class="hidden w-full max-w-2xl mx-auto flex flex-col bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden no-print h-full flex-shrink-0">
+                    <div class="bg-[#0a1b4f] p-4 flex items-center gap-3 shrink-0">
+                        <div class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center shadow-inner"><i data-lucide="bot" class="text-white w-6 h-6"></i></div>
+                        <div><h3 class="text-white font-bold text-sm">Assistant Avencia</h3><p class="text-white/50 text-[10px] italic">Je prépare votre document avec vous.</p></div>
                     </div>
-                    <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar"></div>
+                    <div id="chat-messages" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 custom-scrollbar bg-slate-50/50"></div>
                     
-                    <div id="chat-logo-upload" class="hidden px-6 py-4 bg-white border-t border-slate-100 flex items-center justify-between">
-                        <p class="text-xs font-semibold text-slate-600">Choisissez votre logo :</p>
+                    <div id="chat-logo-upload" class="hidden px-4 py-3 bg-white border-t border-slate-100 flex items-center justify-between">
+                        <p class="text-xs font-semibold text-slate-600">Envoyez un logo :</p>
                         <input type="file" id="chat-logo-input" class="hidden" accept="image/*" />
-                        <button onclick="document.getElementById('chat-logo-input').click()" class="bg-[#0a1b4f] text-white px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider">Parcourir</button>
+                        <button onclick="document.getElementById('chat-logo-input').click()" class="bg-[#0a1b4f] text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider">Parcourir</button>
                     </div>
 
-                    <div id="chat-input-area" class="p-5 border-t border-slate-100 bg-white">
-                        <form id="chat-form" class="flex gap-3">
+                    <div id="chat-input-area" class="p-4 border-t border-slate-100 bg-white">
+                        <form id="chat-form" class="flex gap-2">
                             <input type="text" id="chat-input" placeholder="Répondez ici..." class="flex-1 input-field" autocomplete="off" />
-                            <button type="submit" class="bg-[#0a1b4f] text-white w-12 rounded-xl flex items-center justify-center shadow-lg active:scale-95 transition-all"><i data-lucide="send" class="w-5 h-5"></i></button>
+                            <button type="submit" class="bg-[#0a1b4f] text-white w-12 rounded-xl flex items-center justify-center shadow-md active:scale-95 transition-all"><i data-lucide="send" class="w-5 h-5"></i></button>
                         </form>
                     </div>
                 </section>
 
                 <!-- SECTION APERÇU -->
-                <section id="preview-section" class="w-full lg:w-7/12 overflow-x-auto lg:overflow-y-auto no-print-scrollbar bg-slate-200/50 p-4 rounded-xl custom-scrollbar flex-shrink-0">
+                <section id="preview-section" class="w-full lg:w-7/12 overflow-x-hidden overflow-y-auto lg:overflow-auto no-print-scrollbar bg-slate-200/50 p-2 md:p-4 rounded-xl custom-scrollbar flex-shrink-0">
                     <div class="preview-wrapper">
-                        <div id="invoice-preview" class="bg-white shadow-2xl border border-slate-200 origin-top shadow-slate-300"></div>
+                        <div id="invoice-preview" class="bg-white shadow-xl border border-slate-200 shadow-slate-300"></div>
                     </div>
                 </section>
             </div>
+            
+            <!-- BOTTOM NAVIGATION (MOBILE EXCLUSIVE FOR EDITOR) -->
+            <nav id="mobile-editor-nav" class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-[70] flex justify-between px-2 pt-2 pb-safe hidden shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
+                <button onclick="setUIMode('easy')" id="mob-mode-easy" class="mob-nav-btn flex-1 flex flex-col items-center text-slate-400 pb-1">
+                    <div class="icon-wrapper mb-1"><i data-lucide="file-edit" class="w-5 h-5"></i></div>
+                    <span class="text-[10px] font-bold">Éditer</span>
+                </button>
+                <button onclick="setUIMode('chat')" id="mob-mode-chat" class="mob-nav-btn flex-1 flex flex-col items-center text-slate-400 pb-1">
+                    <div class="icon-wrapper mb-1"><i data-lucide="message-square" class="w-5 h-5"></i></div>
+                    <span class="text-[10px] font-bold">Assistant</span>
+                </button>
+                <button onclick="setUIMode('double')" id="mob-mode-double" class="mob-nav-btn flex-1 flex flex-col items-center text-slate-400 pb-1">
+                    <div class="icon-wrapper mb-1"><i data-lucide="eye" class="w-5 h-5"></i></div>
+                    <span class="text-[10px] font-bold">Aperçu PDF</span>
+                </button>
+            </nav>
+
         </div>
     </div>
-    
-    <div id="pdf-render-zone" style="position: absolute; top: -9999px; left: -9999px;"></div>
 
     <script>
         /** Protection **/
@@ -429,11 +486,10 @@
             if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && ['I','C','J'].includes(String.fromCharCode(e.keyCode))) || (e.ctrlKey && ['U','S'].includes(String.fromCharCode(e.keyCode)))) return false;
         };
 
-        // --- GESTION DE L'AUTHENTIFICATION & PROFIL ---
+        // --- ÉTAT ---
         let currentUser = JSON.parse(localStorage.getItem('avencia_user')) || null;
         let appHistory = JSON.parse(localStorage.getItem('avencia_docs')) || [];
 
-        // État de l'éditeur
         let state = {
             docType: 'quote', selectedTemplate: 'modern', logo: 'Logo.png', primaryColor: '#0a1b4f',
             isGenerating: false,
@@ -458,11 +514,43 @@
                 
                 const sbCompany = document.getElementById('sidebar-company');
                 const sbAvatar = document.getElementById('sidebar-avatar');
+                const mobCompany = document.getElementById('mob-sidebar-company');
+                const mobAvatar = document.getElementById('mob-sidebar-avatar');
+                
                 if(sbCompany) sbCompany.innerText = currentUser.name;
                 if(sbAvatar) sbAvatar.innerText = currentUser.name.charAt(0);
+                if(mobCompany) mobCompany.innerText = currentUser.name;
+                if(mobAvatar) mobAvatar.innerText = currentUser.name.charAt(0);
 
                 loadProfileToState();
-                switchAppView(appHistory.length > 0 ? 'documents' : 'editor');
+                
+                // UX Mobile par défaut : Si l'utilisateur est sur téléphone, afficher le formulaire
+                if (window.innerWidth < 1024) {
+                    if (appHistory.length > 0) {
+                        switchAppView('documents');
+                    } else {
+                        switchAppView('editor');
+                        setUIMode('easy'); // Force le mode formulaire sur mobile
+                    }
+                } else {
+                    switchAppView(appHistory.length > 0 ? 'documents' : 'editor');
+                }
+            }
+        }
+
+        function toggleMobileMenu() {
+            const overlay = document.getElementById('mobile-menu-overlay');
+            const drawer = document.getElementById('mobile-menu-drawer');
+            if(overlay.classList.contains('hidden')) {
+                overlay.classList.remove('hidden');
+                setTimeout(() => {
+                    overlay.classList.remove('opacity-0');
+                    drawer.classList.remove('-translate-x-full');
+                }, 10);
+            } else {
+                overlay.classList.add('opacity-0');
+                drawer.classList.add('-translate-x-full');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
             }
         }
 
@@ -542,7 +630,7 @@
         }
 
         function deleteDoc(id) {
-            if(confirm("Supprimer définitivement ce document de l'historique ?")) {
+            if(confirm("Supprimer définitivement ce document ?")) {
                 appHistory = appHistory.filter(d => d.id !== id);
                 localStorage.setItem('avencia_docs', JSON.stringify(appHistory));
                 renderHistoryList();
@@ -573,7 +661,7 @@
                 const badge = !isInv ? '<span class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-bold uppercase">Devis</span>' : 
                               (isPaid ? `<span class="bg-green-100 text-green-600 px-2 py-1 rounded text-xs font-bold uppercase cursor-pointer hover:opacity-80" onclick="toggleDocStatus('${doc.id}')">Payée</span>` : `<span class="bg-amber-100 text-amber-600 px-2 py-1 rounded text-xs font-bold uppercase cursor-pointer hover:opacity-80" onclick="toggleDocStatus('${doc.id}')">En attente</span>`);
                 
-                return `<tr class="hover:bg-slate-50 border-b border-slate-50"><td class="px-6 py-4">${badge}</td><td class="px-6 py-4"><p class="font-bold text-slate-800">${doc.number}</p><p class="text-xs text-slate-500">${doc.date}</p></td><td class="px-6 py-4 font-medium text-slate-600">${doc.client}</td><td class="px-6 py-4 text-right font-black text-slate-800">${doc.total.toFixed(2)} $</td><td class="px-6 py-4"><div class="flex items-center justify-center gap-2">${isInv && !isPaid ? `<button onclick="sendReminder('contact@client.com', '${doc.number}')" class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"><i data-lucide="send" class="w-4 h-4"></i></button>` : ''}<button onclick="deleteDoc('${doc.id}')" class="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></td></tr>`;
+                return `<tr class="hover:bg-slate-50 border-b border-slate-50"><td class="px-4 md:px-6 py-4">${badge}</td><td class="px-4 md:px-6 py-4"><p class="font-bold text-slate-800">${doc.number}</p><p class="text-xs text-slate-500">${doc.date}</p></td><td class="px-4 md:px-6 py-4 font-medium text-slate-600">${doc.client}</td><td class="px-4 md:px-6 py-4 text-right font-black text-slate-800">${doc.total.toFixed(2)} $</td><td class="px-4 md:px-6 py-4"><div class="flex items-center justify-center gap-2">${isInv && !isPaid ? `<button onclick="sendReminder('contact@client.com', '${doc.number}')" class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"><i data-lucide="send" class="w-4 h-4"></i></button>` : ''}<button onclick="deleteDoc('${doc.id}')" class="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></td></tr>`;
             }).join('');
             lucide.createIcons();
         }
@@ -582,6 +670,7 @@
         function switchAppView(viewName) {
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             if(document.getElementById(`nav-${viewName}`)) document.getElementById(`nav-${viewName}`).classList.add('active');
+            if(document.getElementById(`mob-nav-${viewName}`)) document.getElementById(`mob-nav-${viewName}`).classList.add('active');
 
             ['documents', 'editor', 'profile'].forEach(v => {
                 const view = document.getElementById(`view-${v}`);
@@ -596,49 +685,68 @@
             
             const docsToolbar = document.getElementById('documents-toolbar');
             const editToolbar = document.getElementById('editor-toolbar');
+            const mobEditorNav = document.getElementById('mobile-editor-nav');
+            const fabSave = document.getElementById('fab-save');
             
             if(docsToolbar) docsToolbar.classList.toggle('hidden', viewName === 'editor' || viewName === 'profile');
             if(editToolbar) editToolbar.classList.toggle('hidden', viewName !== 'editor');
+            if(mobEditorNav) mobEditorNav.classList.toggle('hidden', viewName !== 'editor');
 
             if(viewName === 'documents') renderHistoryList();
-            if(viewName === 'editor' && !state.meta.number.includes('-')) {
-                state.meta.number = (state.docType === 'quote' ? 'DEV-' : 'FAC-') + Date.now().toString().slice(-4);
-                const metaNumber = document.getElementById('meta-number');
-                if(metaNumber) metaNumber.value = state.meta.number;
+            if(viewName === 'editor') {
+                if(!state.meta.number.includes('-')) {
+                    state.meta.number = (state.docType === 'quote' ? 'DEV-' : 'FAC-') + Date.now().toString().slice(-4);
+                    const metaNumber = document.getElementById('meta-number');
+                    if(metaNumber) metaNumber.value = state.meta.number;
+                }
+                
+                // Comportement intelligent : PC = Double, Mobile = Formulaire par défaut
+                if (window.innerWidth < 1024) {
+                    setUIMode('easy');
+                } else {
+                    setUIMode('double'); 
+                }
                 renderPreview();
+            } else {
+                if(fabSave) fabSave.classList.add('hidden');
             }
         }
 
         function setUIMode(mode) {
             state.isMode = mode;
-            const elements = { editor: 'editor-section', preview: 'preview-section', chat: 'chat-section', easy: 'easy-mode-btn-container' };
+            // Update Desktop buttons
             document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.id === `mode-${mode}`));
+            // Update Mobile Bottom Nav buttons
+            document.querySelectorAll('.mob-nav-btn').forEach(b => b.classList.toggle('active', b.id === `mob-mode-${mode}`));
 
-            const editorEl = document.getElementById(elements.editor);
-            const previewEl = document.getElementById(elements.preview);
-            const chatEl = document.getElementById(elements.chat);
-            const easyEl = document.getElementById(elements.easy);
+            const editorEl = document.getElementById('editor-section');
+            const previewEl = document.getElementById('preview-section');
+            const chatEl = document.getElementById('chat-section');
+            const fabSave = document.getElementById('fab-save');
 
-            if (!editorEl || !previewEl || !chatEl || !easyEl) return;
+            if (!editorEl || !previewEl || !chatEl) return;
 
+            // Logique d'affichage responsive pour une UX parfaite
             if (mode === 'double') {
-                editorEl.className = "w-full lg:w-5/12 flex flex-col gap-6 lg:overflow-y-auto pr-2 no-print custom-scrollbar flex-shrink-0";
-                editorEl.classList.remove('hidden');
-                previewEl.className = "w-full lg:w-7/12 overflow-x-auto lg:overflow-auto no-print-scrollbar bg-slate-200/50 p-4 rounded-xl custom-scrollbar flex-shrink-0";
+                // Desktop: Double (Vue divisée) / Mobile: Aperçu Seul (Preview Only)
+                editorEl.className = "hidden lg:flex w-full lg:w-5/12 flex-col gap-6 lg:overflow-y-auto pr-2 no-print custom-scrollbar flex-shrink-0 pb-10";
+                previewEl.className = "w-full lg:w-7/12 overflow-x-hidden overflow-y-auto lg:overflow-auto no-print-scrollbar bg-slate-200/50 p-2 md:p-4 rounded-xl custom-scrollbar flex-shrink-0 pb-10";
                 previewEl.classList.remove('hidden');
                 chatEl.classList.add('hidden');
-                easyEl.classList.add('hidden');
+                if(fabSave && window.innerWidth < 1024) fabSave.classList.remove('hidden'); // Afficher le bouton de sauvegarde flottant
             } else if (mode === 'easy') {
+                // Formulaire seul (Mode Edition)
                 editorEl.className = "w-full max-w-3xl mx-auto flex flex-col gap-6 no-print";
                 editorEl.classList.remove('hidden');
                 previewEl.classList.add('hidden');
                 chatEl.classList.add('hidden');
-                easyEl.classList.remove('hidden');
-            } else {
+                if(fabSave) fabSave.classList.add('hidden');
+            } else if (mode === 'chat') {
+                // Chat seul
                 editorEl.classList.add('hidden');
                 previewEl.classList.add('hidden');
                 chatEl.classList.remove('hidden');
-                easyEl.classList.add('hidden');
+                if(fabSave) fabSave.classList.add('hidden');
                 resetChat();
             }
         }
@@ -669,7 +777,9 @@
         const addItem = () => { state.items.push({ id: Date.now(), name: "", description: "", qty: 1, price: 0 }); renderItemsEditor(); renderPreview(); };
         const removeItem = (id) => { if(state.items.length > 1) { state.items = state.items.filter(i => i.id !== id); renderItemsEditor(); renderPreview(); } };
 
-        // --- GÉNÉRATION PDF OPTIMISÉE POUR MOBILE ---
+        // --- GÉNÉRATION PDF INFAILLIBLE ---
+        // Cette méthode utilise un conteneur clone invisible. C'est la méthode ultime 
+        // pour empêcher les bugs "UnhandledRejection" ou les factures blanches liés au mobile.
         async function generatePDF() {
             if (state.isGenerating) return;
             state.isGenerating = true;
@@ -680,41 +790,43 @@
             try {
                 const previewElement = document.getElementById('invoice-preview');
                 
-                // Très important : Enlever le zoom CSS pour la capture
-                const originalZoom = previewElement.style.zoom;
-                previewElement.style.setProperty('zoom', '1', 'important');
+                // 1. Création d'un clone parfait caché en dehors de l'écran visible
+                const cloneContainer = document.createElement('div');
+                cloneContainer.innerHTML = previewElement.innerHTML;
                 
-                const currentScrollY = window.scrollY;
-                const currentScrollX = window.scrollX;
-                const mainContainer = document.getElementById('main-container');
-                const previewSection = document.getElementById('preview-section');
-                
-                const origMainOverflow = mainContainer.style.overflow;
-                const origPreviewOverflow = previewSection.style.overflow;
-                
-                window.scrollTo(0, 0);
-                if (previewSection) previewSection.scrollTop = 0;
-                if (mainContainer) mainContainer.style.overflow = 'visible';
-                if (previewSection) previewSection.style.overflow = 'visible';
+                // Styles stricts A4 : Invisible mais présent dans le DOM pour html2canvas
+                cloneContainer.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 794px !important;
+                    min-height: 1123px !important;
+                    background-color: white;
+                    margin: 0;
+                    padding: 0;
+                    z-index: -9999;
+                    pointer-events: none;
+                `;
+                document.body.appendChild(cloneContainer);
 
-                await new Promise(resolve => setTimeout(resolve, 200));
+                // Petite pause pour s'assurer que le navigateur a dessiné le clone
+                await new Promise(resolve => setTimeout(resolve, 300));
 
-                const canvas = await html2canvas(previewElement, {
-                    scale: 2, 
-                    useCORS: true,
+                // 2. Capture de l'image
+                const canvas = await html2canvas(cloneContainer, {
+                    scale: 2, // Qualité x2
+                    useCORS: true, 
                     allowTaint: true,
                     logging: false,
-                    scrollY: 0,
-                    scrollX: 0
+                    windowWidth: 794,
+                    windowHeight: 1123
                 });
 
-                // Restauration de l'écran et du zoom
-                previewElement.style.zoom = originalZoom;
-                if (mainContainer) mainContainer.style.overflow = origMainOverflow;
-                if (previewSection) previewSection.style.overflow = origPreviewOverflow;
-                window.scrollTo(currentScrollX, currentScrollY);
+                // On nettoie le DOM
+                document.body.removeChild(cloneContainer);
 
-                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                // 3. Fabrication du PDF
+                const imgData = canvas.toDataURL('image/jpeg', 0.98);
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'mm', 'a4'); 
                 
@@ -724,6 +836,7 @@
                 pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
                 pdf.save(`AVENCIA_${state.meta.number || 'DOC'}.pdf`);
 
+                // 4. Sauvegarde dans l'historique
                 const newDocRecord = {
                     id: Date.now().toString(),
                     type: state.docType,
@@ -735,6 +848,7 @@
                 };
                 saveToHistory(newDocRecord);
 
+                // Préparation de la prochaine facture
                 state.meta.number = (state.docType === 'quote' ? 'DEV-' : 'FAC-') + Date.now().toString().slice(-4);
                 const metaNum = document.getElementById('meta-number');
                 if(metaNum) metaNum.value = state.meta.number;
@@ -742,7 +856,7 @@
 
             } catch (err) {
                 console.error("Erreur PDF:", err);
-                alert("Une erreur s'est produite lors de la génération. Veuillez réessayer.");
+                alert("Erreur de génération. Assurez-vous que votre navigateur autorise le traitement des images.");
             } finally {
                 state.isGenerating = false;
                 document.querySelectorAll('.generate-icon, .btn-text').forEach(el => el.classList.remove('hidden'));
@@ -755,15 +869,18 @@
             const container = document.getElementById('items-container');
             if(!container) return;
             container.innerHTML = state.items.map(item => `
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 relative group animate-logo">
-                    <button onclick="removeItem(${item.id})" class="absolute -top-2 -right-2 bg-white text-red-500 p-1 rounded-full shadow border opacity-0 group-hover:opacity-100 transition"><i data-lucide="x" class="w-4 h-4"></i></button>
-                    <div class="grid grid-cols-1 gap-2">
-                        <input type="text" placeholder="Désignation de l'article" class="input-field text-xs font-bold" value="${item.name}" oninput="updateItem(${item.id}, 'name', this.value)">
-                        <textarea placeholder="Description (optionnelle)" class="input-field text-xs h-12" oninput="updateItem(${item.id}, 'description', this.value)">${item.description || ''}</textarea>
-                        <div class="grid grid-cols-3 gap-2 mt-1">
-                            <div><label class="text-[9px] text-slate-400 uppercase font-bold">Qté</label><input type="number" class="input-field py-1 px-2" value="${item.qty}" oninput="updateItem(${item.id}, 'qty', this.value)"></div>
-                            <div><label class="text-[9px] text-slate-400 uppercase font-bold">Prix unitaire</label><input type="number" class="input-field py-1 px-2" value="${item.price}" oninput="updateItem(${item.id}, 'price', this.value)"></div>
-                            <div class="flex items-end justify-end"><span class="font-black text-xs text-[#0a1b4f]">${(item.qty * item.price).toFixed(2)} $</span></div>
+                <div class="bg-slate-50 p-4 md:p-5 rounded-xl border border-slate-200 relative group animate-logo">
+                    <button onclick="removeItem(${item.id})" class="absolute -top-2 -right-2 bg-white text-red-500 p-1.5 rounded-full shadow border border-slate-100 opacity-100 md:opacity-0 group-hover:opacity-100 transition"><i data-lucide="x" class="w-4 h-4"></i></button>
+                    <div class="grid grid-cols-1 gap-3">
+                        <div><label class="text-[10px] text-slate-400 uppercase font-bold">Désignation</label><input type="text" placeholder="Nom de l'article" class="input-field text-sm font-bold" value="${item.name}" oninput="updateItem(${item.id}, 'name', this.value)"></div>
+                        <div><textarea placeholder="Description (optionnelle)" class="input-field text-xs h-12" oninput="updateItem(${item.id}, 'description', this.value)">${item.description || ''}</textarea></div>
+                        <div class="grid grid-cols-2 gap-3 mt-1">
+                            <div><label class="text-[10px] text-slate-400 uppercase font-bold">Qté</label><input type="number" class="input-field text-sm" value="${item.qty}" oninput="updateItem(${item.id}, 'qty', this.value)"></div>
+                            <div><label class="text-[10px] text-slate-400 uppercase font-bold">Prix unitaire</label><input type="number" class="input-field text-sm" value="${item.price}" oninput="updateItem(${item.id}, 'price', this.value)"></div>
+                        </div>
+                        <div class="flex items-center justify-between border-t border-slate-200 pt-2 mt-1">
+                            <span class="text-xs text-slate-400 font-medium">Total de la ligne</span>
+                            <span class="font-black text-sm text-[#0a1b4f]">${(item.qty * item.price).toFixed(2)} $</span>
                         </div>
                     </div>
                 </div>
@@ -1116,7 +1233,6 @@
         }
 
         // --- EVENTS DU DOM (SÉCURISÉS) ---
-        // Tous les écouteurs sont mis ici pour éviter les erreurs "Cannot set properties of null"
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             
@@ -1227,8 +1343,13 @@
                     
                     const sidebarCompany = document.getElementById('sidebar-company');
                     const sidebarAvatar = document.getElementById('sidebar-avatar');
+                    const mobCompany = document.getElementById('mob-sidebar-company');
+                    const mobAvatar = document.getElementById('mob-sidebar-avatar');
+                    
                     if (sidebarCompany) sidebarCompany.innerText = currentUser.name;
                     if (sidebarAvatar) sidebarAvatar.innerText = currentUser.name.charAt(0);
+                    if (mobCompany) mobCompany.innerText = currentUser.name;
+                    if (mobAvatar) mobAvatar.innerText = currentUser.name.charAt(0);
                     
                     showToast("Profil mis à jour", "Vos paramètres par défaut ont été enregistrés.");
                     loadProfileToState(); 
@@ -1248,25 +1369,9 @@
                     processStep(chatSteps[currentStep], val);
                 });
             }
-
-            const modeDouble = document.getElementById('mode-double');
-            if (modeDouble) modeDouble.onclick = () => setUIMode('double');
-
-            const modeEasy = document.getElementById('mode-easy');
-            if (modeEasy) modeEasy.onclick = () => setUIMode('easy');
-
-            const modeChat = document.getElementById('mode-chat');
-            if (modeChat) modeChat.onclick = () => setUIMode('chat');
-
-            const typeQuote = document.getElementById('type-quote');
-            if (typeQuote) typeQuote.onclick = () => switchDocType('quote');
-
-            const typeInvoice = document.getElementById('type-invoice');
-            if (typeInvoice) typeInvoice.onclick = () => switchDocType('invoice');
-
         });
 
-        // --- FONCTIONS CLASSIQUES ACCESSIBLES ---
+        // --- GESTION DU CHAT ---
         let chatSteps = [
             { id: 'type', q: "Bonjour ! On commence ? Voulez-vous créer un **Devis** ou une **Facture** ?", validate: v => ['devis', 'facture'].includes(v.toLowerCase()) },
             { id: 'prov_name', q: "Quel est le **nom de votre commerce** ou entreprise ?", validate: v => v.length > 1 },
@@ -1327,7 +1432,7 @@
                 }
                 setTimeout(() => addChatMessage('bot', chatSteps[currentStep].q), 600);
             } else {
-                addChatMessage('bot', "C'est fini ! Téléchargez le PDF ou passez en mode Aperçu pour voir le résultat.");
+                addChatMessage('bot', "C'est fini ! Allez dans l'onglet 'Aperçu' en bas pour générer votre document.");
             }
         }
 
@@ -1338,12 +1443,12 @@
             renderPreview(); 
         };
 
-        const resetChat = () => { 
-            currentStep = 0; 
+        function resetChat() {
+            currentStep = 0;
             const chatMsgs = document.getElementById('chat-messages');
-            if(chatMsgs) chatMsgs.innerHTML = ''; 
-            showNextStep(); 
-        };
+            if(chatMsgs) chatMsgs.innerHTML = '';
+            showNextStep();
+        }
     </script>
 </body>
 </html>
