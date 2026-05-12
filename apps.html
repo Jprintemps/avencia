@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avencia - Devis & Factures</title>
+    <title>Avencia - Devis & Factures Professionnels</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -20,6 +20,7 @@
         
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; overflow: hidden; }
         
+        /* Protection du code */
         .no-select { user-select: none; -webkit-user-select: none; }
         input, textarea { user-select: text !important; -webkit-user-select: text !important; }
         
@@ -49,6 +50,37 @@
         #toast { transition: transform 0.3s ease, opacity 0.3s ease; }
         .toast-hidden { transform: translateY(100%); opacity: 0; }
         .toast-visible { transform: translateY(0); opacity: 1; }
+
+        /* --- CORRECTION MOBILE : Rendu Statique A4 --- */
+        .preview-wrapper {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            min-width: max-content;
+            padding-bottom: 2rem;
+        }
+
+        #invoice-preview {
+            width: 794px;
+            min-width: 794px;
+            background: white;
+            transform-origin: top center;
+        }
+
+        /* Zoom arrière intelligent pour les petits écrans */
+        @media (max-width: 1024px) {
+            #invoice-preview { zoom: 0.65; }
+            .preview-wrapper { min-width: auto; }
+        }
+        @media (max-width: 768px) {
+            #invoice-preview { zoom: 0.60; }
+        }
+        @media (max-width: 500px) {
+            #invoice-preview { zoom: 0.45; }
+        }
+        @media (max-width: 380px) {
+            #invoice-preview { zoom: 0.38; }
+        }
     </style>
 </head>
 <body class="h-screen flex text-slate-800 no-select" oncontextmenu="return false;">
@@ -166,10 +198,10 @@
             </header>
 
             <!-- VUE 1 : MES DOCUMENTS -->
-            <div id="view-documents" class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+            <div id="view-documents" class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
                 <div class="max-w-6xl mx-auto">
-                    <div class="flex justify-between items-end mb-8">
-                        <p class="text-slate-500">Gérez vos devis, suivez vos factures et relancez vos clients en un clic.</p>
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
+                        <p class="text-slate-500 text-sm md:text-base">Gérez vos devis, suivez vos factures et relancez vos clients en un clic.</p>
                         <div class="flex gap-2">
                             <button onclick="filterDocs('all')" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-300">Tous</button>
                             <button onclick="filterDocs('quote')" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-50">Devis</button>
@@ -179,7 +211,7 @@
 
                     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left text-sm">
+                            <table class="w-full text-left text-sm whitespace-nowrap">
                                 <thead class="bg-slate-50 text-slate-500">
                                     <tr>
                                         <th class="px-6 py-4 font-medium">Statut</th>
@@ -202,12 +234,11 @@
             </div>
 
             <!-- VUE 2 : PROFIL UTILISATEUR (PARAMÈTRES) -->
-            <div id="view-profile" class="hidden flex-1 overflow-y-auto p-8 custom-scrollbar">
+            <div id="view-profile" class="hidden flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
                 <div class="max-w-4xl mx-auto">
-                    <p class="text-slate-500 mb-8">Ces informations seront utilisées par défaut sur toutes vos futures factures et devis.</p>
+                    <p class="text-slate-500 mb-8 text-sm md:text-base">Ces informations seront utilisées par défaut sur toutes vos futures factures et devis.</p>
                     
                     <form id="profile-form" class="space-y-6">
-                        <!-- Paramètres Entreprise -->
                         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                             <h3 class="font-bold text-lg text-slate-800 mb-4 border-b border-slate-100 pb-2">Informations de l'entreprise</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -234,7 +265,6 @@
                             </div>
                         </div>
 
-                        <!-- Paramètres Facturation par défaut -->
                         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                             <h3 class="font-bold text-lg text-slate-800 mb-4 border-b border-slate-100 pb-2">Préférences de facturation</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -257,7 +287,7 @@
                         </div>
 
                         <div class="flex justify-end pt-4 pb-12">
-                            <button type="submit" class="bg-[#0a1b4f] hover:bg-[#071336] text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition-colors">
+                            <button type="submit" class="w-full md:w-auto bg-[#0a1b4f] hover:bg-[#071336] text-white px-8 py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg transition-colors">
                                 <i data-lucide="save" class="w-5 h-5"></i> Enregistrer les modifications
                             </button>
                         </div>
@@ -266,9 +296,10 @@
             </div>
 
             <!-- VUE 3 : ÉDITEUR DE DOCUMENT -->
-            <div id="view-editor" class="hidden flex-1 flex flex-col lg:flex-row gap-8 p-4 lg:p-8 overflow-hidden h-full">
+            <!-- Modification pour autoriser le scroll global sur mobile -->
+            <div id="view-editor" class="hidden flex-1 flex flex-col lg:flex-row gap-8 p-4 lg:p-8 overflow-y-auto lg:overflow-hidden h-full">
                 
-                <section id="editor-section" class="w-full lg:w-5/12 flex flex-col gap-6 overflow-y-auto pr-2 no-print custom-scrollbar">
+                <section id="editor-section" class="w-full lg:w-5/12 flex flex-col gap-6 lg:overflow-y-auto pr-2 no-print custom-scrollbar flex-shrink-0">
                     <!-- Type Doc -->
                     <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                         <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider"><i data-lucide="file-question" class="w-4 h-4"></i> Document</h2>
@@ -359,7 +390,7 @@
                 </section>
 
                 <!-- SECTION CHAT -->
-                <section id="chat-section" class="hidden w-full max-w-2xl mx-auto flex flex-col bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden no-print h-full">
+                <section id="chat-section" class="hidden w-full max-w-2xl mx-auto flex flex-col bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden no-print h-full flex-shrink-0">
                     <div class="bg-[#0a1b4f] p-5 flex items-center gap-4 shrink-0">
                         <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center shadow-inner"><i data-lucide="bot" class="text-white w-7 h-7"></i></div>
                         <div><h3 class="text-white font-bold">Assistant Avencia</h3><p class="text-white/50 text-xs italic">Créons votre document en discutant.</p></div>
@@ -381,8 +412,10 @@
                 </section>
 
                 <!-- SECTION APERÇU -->
-                <section id="preview-section" class="w-full lg:w-7/12 flex justify-center overflow-y-auto no-print-scrollbar bg-slate-200/50 p-4 rounded-xl custom-scrollbar">
-                    <div id="invoice-preview" class="bg-white shadow-2xl border border-slate-200 origin-top h-max"></div>
+                <section id="preview-section" class="w-full lg:w-7/12 overflow-x-auto lg:overflow-y-auto no-print-scrollbar bg-slate-200/50 p-4 rounded-xl custom-scrollbar flex-shrink-0">
+                    <div class="preview-wrapper">
+                        <div id="invoice-preview" class="bg-white shadow-2xl border border-slate-200 origin-top shadow-slate-300"></div>
+                    </div>
                 </section>
             </div>
         </div>
@@ -411,6 +444,7 @@
             vatRate: 0, bankInfo: "",
         };
 
+        // FONCTIONS GLOBALES
         function initAuth() {
             const authScreen = document.getElementById('auth-screen');
             const appWrapper = document.getElementById('app-wrapper');
@@ -422,16 +456,12 @@
                 if(authScreen) authScreen.classList.add('hidden');
                 if(appWrapper) appWrapper.classList.remove('hidden');
                 
-                // Mettre à jour l'UI de la Sidebar
                 const sbCompany = document.getElementById('sidebar-company');
                 const sbAvatar = document.getElementById('sidebar-avatar');
                 if(sbCompany) sbCompany.innerText = currentUser.name;
                 if(sbAvatar) sbAvatar.innerText = currentUser.name.charAt(0);
 
-                // Charger le profil dans le state
                 loadProfileToState();
-                
-                // Rediriger vers mes documents s'il y a un historique
                 switchAppView(appHistory.length > 0 ? 'documents' : 'editor');
             }
         }
@@ -455,7 +485,6 @@
                 state.vatRate = currentUser.vatRate || 0;
                 state.bankInfo = currentUser.bankInfo || "";
 
-                // Mettre à jour les champs HTML de l'éditeur
                 const ids = ['prov-name','prov-email','prov-address','prov-phone','prov-id','primaryColor','vat-rate','bank-info'];
                 ids.forEach(id => {
                     const el = document.getElementById(id);
@@ -468,7 +497,6 @@
                     }
                 });
 
-                // Pré-remplir les champs de l'onglet profil aussi
                 const safeSet = (id, val) => { const e = document.getElementById(id); if(e) e.value = val; };
                 safeSet('prof-name', currentUser.name || "");
                 safeSet('prof-email', currentUser.email || "");
@@ -581,7 +609,7 @@
             }
         }
 
-        const setUIMode = (mode) => {
+        function setUIMode(mode) {
             state.isMode = mode;
             const elements = { editor: 'editor-section', preview: 'preview-section', chat: 'chat-section', easy: 'easy-mode-btn-container' };
             document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.id === `mode-${mode}`));
@@ -594,8 +622,9 @@
             if (!editorEl || !previewEl || !chatEl || !easyEl) return;
 
             if (mode === 'double') {
-                editorEl.className = "w-full lg:w-5/12 flex flex-col gap-6 overflow-y-auto pr-2 no-print custom-scrollbar";
+                editorEl.className = "w-full lg:w-5/12 flex flex-col gap-6 lg:overflow-y-auto pr-2 no-print custom-scrollbar flex-shrink-0";
                 editorEl.classList.remove('hidden');
+                previewEl.className = "w-full lg:w-7/12 overflow-x-auto lg:overflow-auto no-print-scrollbar bg-slate-200/50 p-4 rounded-xl custom-scrollbar flex-shrink-0";
                 previewEl.classList.remove('hidden');
                 chatEl.classList.add('hidden');
                 easyEl.classList.add('hidden');
@@ -612,14 +641,13 @@
                 easyEl.classList.add('hidden');
                 resetChat();
             }
-        };
+        }
 
-        // --- EDITEUR LOGIQUE ---
         const calculateSubtotal = () => state.items.reduce((sum, i) => sum + (i.qty * i.price), 0);
         const calculateVAT = () => calculateSubtotal() * (state.vatRate / 100);
         const calculateTotal = () => calculateSubtotal() + calculateVAT();
 
-        const switchDocType = (type) => {
+        function switchDocType(type) {
             state.docType = type;
             const tQuote = document.getElementById('type-quote');
             const tInvoice = document.getElementById('type-invoice');
@@ -633,7 +661,7 @@
             const metaNum = document.getElementById('meta-number');
             if(metaNum) metaNum.value = state.meta.number;
             renderPreview();
-        };
+        }
 
         const updateNested = (obj, prop, val) => { state[obj][prop] = val; renderPreview(); };
         const updateState = (key, val) => { state[key] = val; renderPreview(); };
@@ -641,7 +669,7 @@
         const addItem = () => { state.items.push({ id: Date.now(), name: "", description: "", qty: 1, price: 0 }); renderItemsEditor(); renderPreview(); };
         const removeItem = (id) => { if(state.items.length > 1) { state.items = state.items.filter(i => i.id !== id); renderItemsEditor(); renderPreview(); } };
 
-        // --- GÉNÉRATION PDF & SAUVEGARDE DB LOCALE ---
+        // --- GÉNÉRATION PDF OPTIMISÉE POUR MOBILE ---
         async function generatePDF() {
             if (state.isGenerating) return;
             state.isGenerating = true;
@@ -651,25 +679,51 @@
 
             try {
                 const previewElement = document.getElementById('invoice-preview');
-                const renderZone = document.getElementById('pdf-render-zone');
                 
-                renderZone.style.cssText = `position: absolute; top: -9999px; left: -9999px; width: 794px; background: white; padding: 0; margin: 0; box-shadow: none; border: none;`;
-                renderZone.innerHTML = previewElement.innerHTML;
+                // Très important : Enlever le zoom CSS pour la capture
+                const originalZoom = previewElement.style.zoom;
+                previewElement.style.setProperty('zoom', '1', 'important');
+                
+                const currentScrollY = window.scrollY;
+                const currentScrollX = window.scrollX;
+                const mainContainer = document.getElementById('main-container');
+                const previewSection = document.getElementById('preview-section');
+                
+                const origMainOverflow = mainContainer.style.overflow;
+                const origPreviewOverflow = previewSection.style.overflow;
+                
+                window.scrollTo(0, 0);
+                if (previewSection) previewSection.scrollTop = 0;
+                if (mainContainer) mainContainer.style.overflow = 'visible';
+                if (previewSection) previewSection.style.overflow = 'visible';
 
-                await new Promise(r => setTimeout(r, 100));
-                const canvas = await html2canvas(renderZone, { scale: 2, useCORS: true, logging: false });
-                renderZone.innerHTML = ''; 
+                await new Promise(resolve => setTimeout(resolve, 200));
+
+                const canvas = await html2canvas(previewElement, {
+                    scale: 2, 
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false,
+                    scrollY: 0,
+                    scrollX: 0
+                });
+
+                // Restauration de l'écran et du zoom
+                previewElement.style.zoom = originalZoom;
+                if (mainContainer) mainContainer.style.overflow = origMainOverflow;
+                if (previewSection) previewSection.style.overflow = origPreviewOverflow;
+                window.scrollTo(currentScrollX, currentScrollY);
 
                 const imgData = canvas.toDataURL('image/jpeg', 1.0);
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                const pdf = new jsPDF('p', 'mm', 'a4'); 
+                
+                const pdfWidth = pdf.internal.pageSize.getWidth(); 
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width; 
                 
                 pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
                 pdf.save(`AVENCIA_${state.meta.number || 'DOC'}.pdf`);
 
-                // Sauvegarde
                 const newDocRecord = {
                     id: Date.now().toString(),
                     type: state.docType,
@@ -681,7 +735,6 @@
                 };
                 saveToHistory(newDocRecord);
 
-                // Nouveau num pour le prochain
                 state.meta.number = (state.docType === 'quote' ? 'DEV-' : 'FAC-') + Date.now().toString().slice(-4);
                 const metaNum = document.getElementById('meta-number');
                 if(metaNum) metaNum.value = state.meta.number;
@@ -697,7 +750,7 @@
             }
         }
 
-        // --- RENDU UI ---
+        // --- RENDU UI EDITEUR ---
         function renderItemsEditor() {
             const container = document.getElementById('items-container');
             if(!container) return;
@@ -718,6 +771,7 @@
             lucide.createIcons();
         }
 
+        // --- RENDU PDF AVEC 5 MODELES ---
         function renderPreview() {
             const container = document.getElementById('invoice-preview');
             if(!container) return;
@@ -732,7 +786,7 @@
                 ? `<img src="${state.logo}" class="max-h-16 w-auto object-contain" />` 
                 : `<div class="w-14 h-14 rounded-xl flex items-center justify-center font-bold text-white text-2xl shadow-md" style="background: linear-gradient(135deg, ${primary}, #2a3b6f);">${(state.provider.name.charAt(0) || 'A').toUpperCase()}</div>`;
 
-            const a4Wrapper = `style="width: 794px; min-height: 1123px; background: white; margin: 0 auto; position: relative; display: flex; flex-direction: column;"`;
+            const a4Wrapper = `style="width: 100%; min-height: 1123px; background: white; margin: 0 auto; position: relative; display: flex; flex-direction: column;"`;
             let htmlContent = '';
 
             if (state.selectedTemplate === 'modern') {
