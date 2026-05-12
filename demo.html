@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avencia - Devis & Factures Professionnels</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Librairies pour le PDF : Le combo fiable html2canvas + jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        
+        /* Protection du code */
+        .no-select { user-select: none; -webkit-user-select: none; }
+        input, textarea { user-select: text !important; -webkit-user-select: text !important; }
+        
+        .input-field {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 0.625rem 0.875rem;
+            font-size: 0.875rem;
+            outline: none;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        .input-field:focus {
+            background-color: #ffffff;
+            border-color: #0a1b4f;
+            box-shadow: 0 0 0 2px rgba(10, 27, 79, 0.1);
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+
+        @media print {
+            body { background: white; }
+            .no-print { display: none !important; }
+        }
+
+        .template-btn.active { border-color: #0a1b4f; background-color: #f8fafc; color: #0a1b4f; }
+        .mode-btn.active { background-color: #fff; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); color: #0a1b4f; }
+        .type-btn.active { background-color: #0a1b4f; color: white; border-color: #0a1b4f; }
+        
+        .chat-bubble-bot { background-color: #f1f5f9; border-radius: 1rem 1rem 1rem 0; }
+        .chat-bubble-user { background-color: #0a1b4f; color: white; border-radius: 1rem 1rem 0 1rem; }
+        
+        @keyframes fadeInZoom {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate-logo { animation: fadeInZoom 0.2s ease-out forwards; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col text-slate-800 no-select" oncontextmenu="return false;">
+
+    <!-- BARRE DU HAUT -->
+    <header class="bg-white border-b border-slate-200 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4 sticky top-0 z-50 no-print shadow-sm">
+        <div class="flex items-center gap-2 w-full md:w-auto justify-between md:justify-start">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-[#0a1b4f] rounded-lg flex items-center justify-center hidden sm:flex">
+                    <span class="text-white font-bold text-lg">a</span>
+                </div>
+                <img src="Logo.png" alt="Avencia" class="h-10 object-contain" onerror="this.onerror=null; this.outerHTML='<h1 class=\'font-bold text-xl tracking-tight text-[#0a1b4f]\'>avencia</h1>'">
+            </div>
+        </div>
+
+        <div class="flex bg-slate-100 p-1 rounded-lg border border-slate-200 w-full md:w-auto overflow-x-auto">
+            <button id="mode-double" class="mode-btn active px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-all whitespace-nowrap text-slate-500">
+                <i data-lucide="layout" class="w-4 h-4"></i> Aperçu direct
+            </button>
+            <button id="mode-easy" class="mode-btn px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-all whitespace-nowrap text-slate-500">
+                <i data-lucide="align-left" class="w-4 h-4"></i> Formulaire simple
+            </button>
+            <button id="mode-chat" class="mode-btn px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-all whitespace-nowrap text-slate-500">
+                <i data-lucide="message-square" class="w-4 h-4"></i> Discuter
+            </button>
+        </div>
+
+        <button onclick="generatePDF()" id="btn-download-header" class="hidden md:flex bg-[#0a1b4f] hover:bg-[#071336] disabled:bg-slate-400 text-white px-5 py-2.5 rounded-lg font-medium items-center gap-2 transition-colors shadow-sm">
+            <i data-lucide="file-down" class="w-4 h-4 generate-icon"></i>
+            <i data-lucide="loader-2" class="w-4 h-4 animate-spin hidden loading-icon"></i>
+            <span class="btn-text">Enregistrer en PDF</span>
+        </button>
+    </header>
+
+    <main id="main-container" class="flex-1 flex flex-col lg:flex-row gap-8 p-4 lg:p-8 overflow-hidden">
+        
+        <!-- SECTION ÉDITEUR -->
+        <section id="editor-section" class="w-full lg:w-5/12 flex flex-col gap-6 overflow-y-auto pr-2 no-print custom-scrollbar">
+            
+            <!-- Type Doc -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider">
+                    <i data-lucide="file-question" class="w-4 h-4"></i> Document
+                </h2>
+                <div class="flex gap-4">
+                    <button id="type-quote" class="type-btn active flex-1 py-3 rounded-lg border-2 font-bold transition-all text-xs">DEVIS</button>
+                    <button id="type-invoice" class="type-btn flex-1 py-3 rounded-lg border-2 font-bold transition-all text-xs">FACTURE</button>
+                </div>
+            </div>
+
+            <!-- Modèles & Couleurs -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider">
+                    <i data-lucide="palette" class="w-4 h-4"></i> Style du document
+                </h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-5" id="template-selector">
+                    <button data-template="modern" class="template-btn active py-3 px-2 rounded-lg border-2 border-slate-100 text-xs font-bold transition-all">Moderne</button>
+                    <button data-template="classic" class="template-btn py-3 px-2 rounded-lg border-2 border-slate-100 text-xs font-bold transition-all">Classique</button>
+                    <button data-template="corporate" class="template-btn py-3 px-2 rounded-lg border-2 border-slate-100 text-xs font-bold transition-all">Entreprise</button>
+                    <button data-template="elegant" class="template-btn py-3 px-2 rounded-lg border-2 border-slate-100 text-xs font-bold transition-all">Élégant</button>
+                    <button data-template="bold" class="template-btn py-3 px-2 rounded-lg border-2 border-slate-100 text-xs font-bold transition-all">Coloré</button>
+                </div>
+                <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+                   <label class="text-[10px] font-bold text-slate-400 uppercase">Couleur de la facture</label>
+                   <input type="color" id="primaryColor" value="#0a1b4f" class="w-8 h-8 rounded cursor-pointer border-0 p-0" />
+                </div>
+            </div>
+
+            <!-- Mes Infos -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider">
+                    <i data-lucide="building-2" class="w-4 h-4"></i> Mes informations
+                </h2>
+                <div class="grid grid-cols-1 gap-4">
+                    <div id="logo-section" class="relative">
+                        <label id="logo-upload-zone" for="logo-input" class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50">
+                            <i data-lucide="image-plus" class="w-5 h-5 text-slate-300 mb-1"></i>
+                            <p class="text-[10px] text-slate-400 mt-2">Cliquez pour ajouter un logo</p>
+                            <input type="file" id="logo-input" class="hidden" accept="image/*" />
+                        </label>
+                        <div id="logo-preview-area" class="hidden absolute inset-0 bg-white border-2 border-slate-100 rounded-xl flex items-center justify-between p-3 z-10">
+                            <img id="logo-img" src="Logo.png" class="h-14 w-auto object-contain" />
+                            <button onclick="removeLogo()" class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                        </div>
+                    </div>
+                    <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Mon nom / Entreprise</label><input type="text" id="prov-name" class="input-field" placeholder="Ex: Avencia Design" /></div>
+                    <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Mon adresse complète</label><textarea id="prov-address" class="input-field h-16"></textarea></div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Téléphone</label><input type="text" id="prov-phone" class="input-field" /></div>
+                        <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Email</label><input type="email" id="prov-email" class="input-field" /></div>
+                    </div>
+                    <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Mon N° (RCCM / ID NAT)</label><input type="text" id="prov-id" class="input-field" /></div>
+                </div>
+            </div>
+
+            <!-- Client -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider">
+                    <i data-lucide="user" class="w-4 h-4"></i> Informations Client
+                </h2>
+                <div class="grid grid-cols-1 gap-4">
+                    <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Nom du client</label><input type="text" id="cli-name" class="input-field" /></div>
+                    <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Son adresse</label><input type="text" id="cli-address" class="input-field" /></div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1 text-prefix">N° Devis</label><input type="text" id="meta-number" class="input-field" /></div>
+                        <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Date</label><input type="date" id="meta-date" class="input-field" /></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vente -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider">
+                    <i data-lucide="shopping-bag" class="w-4 h-4"></i> Ce que vous vendez
+                </h2>
+                <div id="items-container" class="space-y-3"></div>
+                <button onclick="addItem()" class="mt-4 w-full py-2 border border-dashed border-slate-300 rounded-lg text-slate-400 hover:text-slate-600 flex items-center justify-center gap-2 text-xs font-medium">
+                    <i data-lucide="plus" class="w-3 h-3"></i> Ajouter un article
+                </button>
+            </div>
+
+            <!-- Paiement -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-10">
+                <h2 class="font-semibold mb-4 flex items-center gap-2 text-sm text-slate-600 uppercase tracking-wider">
+                    <i data-lucide="credit-card" class="w-4 h-4"></i> Paiement
+                </h2>
+                <div class="space-y-4">
+                    <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Taxe / TVA (%)</label><input type="number" id="vat-rate" class="input-field" value="0" /></div>
+                    <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Comment payer (Banque, Mobile Money...)</label><textarea id="bank-info" class="input-field h-20"></textarea></div>
+                </div>
+            </div>
+
+            <div id="easy-mode-btn-container" class="mt-4 mb-12 hidden px-2">
+                <button onclick="generatePDF()" class="w-full bg-[#0a1b4f] text-white py-5 rounded-xl font-bold flex items-center justify-center gap-3 shadow-xl text-lg">
+                    <i data-lucide="file-down" class="w-6 h-6 generate-icon"></i>
+                    <i data-lucide="loader-2" class="w-6 h-6 animate-spin hidden loading-icon"></i>
+                    <span class="btn-text">Télécharger le document</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- SECTION CHAT -->
+        <section id="chat-section" class="hidden w-full max-w-2xl mx-auto flex flex-col bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden no-print">
+            <div class="bg-[#0a1b4f] p-5 flex items-center gap-4 shrink-0">
+                <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center shadow-inner"><i data-lucide="bot" class="text-white w-7 h-7"></i></div>
+                <div>
+                    <h3 class="text-white font-bold">Assistant Avencia</h3>
+                    <p class="text-white/50 text-xs italic">Créons votre document en discutant.</p>
+                </div>
+            </div>
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4 min-h-[450px] max-h-[550px] bg-slate-50/30 custom-scrollbar"></div>
+            
+            <div id="chat-logo-upload" class="hidden px-6 py-4 bg-white border-t border-slate-100 flex items-center justify-between">
+                <p class="text-xs font-semibold text-slate-600">Choisissez votre logo :</p>
+                <input type="file" id="chat-logo-input" class="hidden" accept="image/*" />
+                <button onclick="document.getElementById('chat-logo-input').click()" class="bg-[#0a1b4f] text-white px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider">Parcourir</button>
+            </div>
+
+            <div id="chat-input-area" class="p-5 border-t border-slate-100 bg-white">
+                <form id="chat-form" class="flex gap-3">
+                    <input type="text" id="chat-input" placeholder="Répondez ici..." class="flex-1 input-field" autocomplete="off" />
+                    <button type="submit" class="bg-[#0a1b4f] text-white w-12 rounded-xl flex items-center justify-center shadow-lg active:scale-95 transition-all"><i data-lucide="send" class="w-5 h-5"></i></button>
+                </form>
+            </div>
+        </section>
+
+        <!-- SECTION APERÇU (VISUEL) -->
+        <section id="preview-section" class="w-full lg:w-7/12 flex justify-center overflow-y-auto no-print-scrollbar bg-slate-200/50 p-4 rounded-xl">
+            <!-- La facture s'affiche ici -->
+            <div id="invoice-preview" class="bg-white shadow-2xl border border-slate-200 origin-top transition-transform"></div>
+        </section>
+    </main>
+
+    <script>
+        /** Protection **/
+        document.onkeydown = (e) => {
+            if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && ['I','C','J'].includes(String.fromCharCode(e.keyCode))) || (e.ctrlKey && ['U','S'].includes(String.fromCharCode(e.keyCode)))) return false;
+        };
+
+        // --- ÉTAT ---
+        let state = {
+            docType: 'quote',
+            selectedTemplate: 'modern',
+            logo: 'Logo.png',
+            primaryColor: '#0a1b4f',
+            isGenerating: false,
+            provider: { name: "Mon Entreprise", id: "", address: "", phone: "", email: "" },
+            client: { name: "", address: "" },
+            meta: { number: "DEV-2026-001", date: new Date().toISOString().split('T')[0] },
+            items: [{ id: 1, name: "", description: "", qty: 1, price: 0 }],
+            vatRate: 0,
+            bankInfo: "",
+        };
+
+        // --- QUESTIONS CHAT ---
+        let chatSteps = [
+            { id: 'type', q: "Bonjour ! On commence ? Voulez-vous créer un **Devis** ou une **Facture** ?", validate: v => ['devis', 'facture'].includes(v.toLowerCase()) },
+            { id: 'prov_name', q: "Quel est le **nom de votre commerce** ou entreprise ?", validate: v => v.length > 1 },
+            { id: 'prov_address', q: "Quelle est **votre adresse** complète ?", validate: v => v.length > 5 },
+            { id: 'prov_contact', q: "Quel est votre **numéro de téléphone** ?", validate: v => v.length > 5 },
+            { id: 'prov_id', q: "Votre numéro d'entreprise (Ex: RCCM ou SIRET) ?", validate: v => v.length > 2 },
+            { id: 'logo', q: "Voulez-vous ajouter un **logo** ? J'utilise `Logo.png` par défaut. Utilisez le bouton ci-dessus pour envoyer un autre logo, ou écrivez 'Non'.", type: 'file' },
+            { id: 'cli_name', q: "D'accord. Quel est le **nom de votre client** ?", validate: v => v.length > 1 },
+            { id: 'cli_address', q: "Quelle est **l'adresse du client** ?", validate: v => v.length > 3 },
+            { id: 'item_name', q: "C'est quoi le **produit ou le service** que vous vendez ?", validate: v => v.length > 2 },
+            { id: 'item_qty', q: "C'est quelle **quantité** ?", validate: v => !isNaN(v) && Number(v) > 0 },
+            { id: 'item_price', q: "C'est quel **prix pour un seul** (sans taxe) ?", validate: v => !isNaN(v) && Number(v) >= 0 },
+            { id: 'vat', q: "Quel est le pourcentage de **Taxe / TVA** ? (Répondez 0 si pas de taxe)", validate: v => !isNaN(v) },
+            { id: 'bank', q: "Vos **infos de paiement** ? (Banque, N° de compte, Mobile Money...)", validate: v => v.length > 5 },
+            { id: 'finish', q: "C'est prêt ! Je télécharge le PDF maintenant ? (Oui/Non)", validate: v => true }
+        ];
+        let currentStep = 0;
+
+        function addChatMessage(sender, text) {
+            const container = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            div.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-2`;
+            div.innerHTML = `<div class="${sender === 'user' ? 'chat-bubble-user' : 'chat-bubble-bot'} px-4 py-2 max-w-[85%] text-sm shadow-sm animate-logo">${text}</div>`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        document.getElementById('chat-form').onsubmit = (e) => {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const val = input.value.trim();
+            if (!val) return;
+            addChatMessage('user', val);
+            input.value = '';
+            processStep(chatSteps[currentStep], val);
+        };
+
+        function processStep(step, val) {
+            if (step.id === 'logo' && val.toLowerCase() === 'non') { currentStep++; showNextStep(); return; }
+            
+            if (step.validate && !step.validate(val)) {
+                setTimeout(() => addChatMessage('bot', "⚠️ Je n'ai pas compris. Écrivez l'info correctement s'il vous plaît."), 500);
+                return;
+            }
+
+            if (step.id === 'type') switchDocType(val.toLowerCase() === 'devis' ? 'quote' : 'invoice');
+            if (step.id === 'prov_name') updateNested('provider', 'name', val);
+            if (step.id === 'prov_address') updateNested('provider', 'address', val);
+            if (step.id === 'prov_contact') updateNested('provider', 'phone', val);
+            if (step.id === 'prov_id') updateNested('provider', 'id', val);
+            if (step.id === 'cli_name') updateNested('client', 'name', val);
+            if (step.id === 'cli_address') updateNested('client', 'address', val);
+            if (step.id === 'item_name') updateItem(state.items[0].id, 'name', val);
+            if (step.id === 'item_qty') updateItem(state.items[0].id, 'qty', val);
+            if (step.id === 'item_price') updateItem(state.items[0].id, 'price', val);
+            if (step.id === 'vat') updateState('vatRate', Number(val));
+            if (step.id === 'bank') updateState('bankInfo', val);
+            if (step.id === 'finish' && val.toLowerCase().includes('oui')) generatePDF();
+
+            currentStep++;
+            showNextStep();
+        }
+
+        function showNextStep() {
+            if (currentStep < chatSteps.length) {
+                if(chatSteps[currentStep].id === 'logo') document.getElementById('chat-logo-upload').classList.remove('hidden');
+                setTimeout(() => addChatMessage('bot', chatSteps[currentStep].q), 600);
+            } else {
+                addChatMessage('bot', "C'est fini ! Téléchargez le PDF ou passez en mode Aperçu pour voir le résultat.");
+            }
+        }
+
+        // --- NAVIGATION ---
+        const setUIMode = (mode) => {
+            const elements = { editor: 'editor-section', preview: 'preview-section', chat: 'chat-section', easy: 'easy-mode-btn-container' };
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.id === `mode-${mode}`));
+
+            if (mode === 'double') {
+                document.getElementById(elements.editor).className = "w-full lg:w-5/12 flex flex-col gap-6 overflow-y-auto pr-2 no-print custom-scrollbar";
+                document.getElementById(elements.editor).classList.remove('hidden');
+                document.getElementById(elements.preview).classList.remove('hidden');
+                document.getElementById(elements.chat).classList.add('hidden');
+                document.getElementById(elements.easy).classList.add('hidden');
+            } else if (mode === 'easy') {
+                document.getElementById(elements.editor).className = "w-full max-w-3xl mx-auto flex flex-col gap-6 no-print";
+                document.getElementById(elements.editor).classList.remove('hidden');
+                document.getElementById(elements.preview).classList.add('hidden');
+                document.getElementById(elements.chat).classList.add('hidden');
+                document.getElementById(elements.easy).classList.remove('hidden');
+            } else {
+                document.getElementById(elements.editor).classList.add('hidden');
+                document.getElementById(elements.preview).classList.add('hidden');
+                document.getElementById(elements.chat).classList.remove('hidden');
+                document.getElementById(elements.easy).classList.add('hidden');
+                resetChat();
+            }
+        };
+
+        document.getElementById('mode-double').onclick = () => setUIMode('double');
+        document.getElementById('mode-easy').onclick = () => setUIMode('easy');
+        document.getElementById('mode-chat').onclick = () => setUIMode('chat');
+
+        // --- ACTIONS ---
+        const updateNested = (obj, prop, val) => { 
+            state[obj][prop] = val; 
+            const el = document.getElementById(`${obj.substring(0,3)}-${prop}`);
+            if(el) el.value = val;
+            renderPreview(); 
+        };
+        const updateState = (key, val) => { 
+            state[key] = val; 
+            const el = document.getElementById(key === 'vatRate' ? 'vat-rate' : key);
+            if(el) el.value = val;
+            renderPreview(); 
+        };
+        const updateItem = (id, field, val) => { 
+            state.items = state.items.map(i => i.id === id ? { ...i, [field]: (['qty','price'].includes(field) ? Number(val) : val) } : i); 
+            renderPreview(); 
+        };
+        const addItem = () => { state.items.push({ id: Date.now(), name: "", description: "", qty: 1, price: 0 }); renderItemsEditor(); renderPreview(); };
+        const removeItem = (id) => { if(state.items.length > 1) { state.items = state.items.filter(i => i.id !== id); renderItemsEditor(); renderPreview(); } };
+
+        const calculateSubtotal = () => state.items.reduce((sum, i) => sum + (i.qty * i.price), 0);
+        const calculateVAT = () => calculateSubtotal() * (state.vatRate / 100);
+        const calculateTotal = () => calculateSubtotal() + calculateVAT();
+
+        const switchDocType = (type) => {
+            state.docType = type;
+            document.getElementById('type-quote').classList.toggle('active', type === 'quote');
+            document.getElementById('type-invoice').classList.toggle('active', type === 'invoice');
+            document.querySelector('.text-prefix').innerText = type === 'quote' ? "N° Devis" : "N° Facture";
+            state.meta.number = type === 'quote' ? state.meta.number.replace('FAC-','DEV-') : state.meta.number.replace('DEV-','FAC-');
+            document.getElementById('meta-number').value = state.meta.number;
+            renderPreview();
+        };
+
+        // Lier les boutons
+        document.getElementById('type-quote').onclick = () => switchDocType('quote');
+        document.getElementById('type-invoice').onclick = () => switchDocType('invoice');
+
+        // Selection du modèle
+        document.querySelectorAll('.template-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.selectedTemplate = btn.dataset.template;
+                renderPreview();
+            };
+        });
+
+        // --- GÉNÉRATION PDF INFAILLIBLE (LA VRAIE SOLUTION) ---
+        async function generatePDF() {
+            if (state.isGenerating) return;
+            state.isGenerating = true;
+            
+            // UX de chargement
+            document.querySelectorAll('.generate-icon, .btn-text').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.loading-icon').forEach(el => el.classList.remove('hidden'));
+
+            try {
+                // SOLUTION : On capture DIRECTEMENT l'élément visible.
+                // Pour éviter que html2canvas ne coupe l'image à cause d'un 'overflow: hidden' ou du défilement,
+                // on prépare l'écran et on scrolle en haut.
+                const currentScrollY = window.scrollY;
+                const currentScrollX = window.scrollX;
+                
+                const mainContainer = document.getElementById('main-container');
+                const previewSection = document.getElementById('preview-section');
+                
+                const origMainOverflow = mainContainer.style.overflow;
+                const origPreviewOverflow = previewSection.style.overflow;
+                const origPreviewScrollTop = previewSection.scrollTop;
+                
+                // Mettre tout à plat pour que html2canvas voit tout le composant A4 sans couper
+                window.scrollTo(0, 0);
+                previewSection.scrollTop = 0;
+                mainContainer.style.overflow = 'visible';
+                previewSection.style.overflow = 'visible';
+
+                // L'élément parfait que l'on veut capturer, c'est l'intérieur du container preview
+                const elementToCapture = document.getElementById('invoice-preview').firstElementChild;
+
+                // Petit délai pour assurer le rendu du navigateur
+                await new Promise(resolve => setTimeout(resolve, 150));
+
+                // Capture avec html2canvas (la "photo")
+                const canvas = await html2canvas(elementToCapture, {
+                    scale: 2, // Haute résolution
+                    useCORS: true, // Autorise les images
+                    allowTaint: true,
+                    logging: false,
+                    scrollY: 0,
+                    scrollX: 0
+                });
+
+                // Restauration de l'écran normal immédiatement après la photo
+                mainContainer.style.overflow = origMainOverflow;
+                previewSection.style.overflow = origPreviewOverflow;
+                previewSection.scrollTop = origPreviewScrollTop;
+                window.scrollTo(currentScrollX, currentScrollY);
+
+                // Génération du PDF avec jsPDF
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4'); // Portrait, Millimètres, Format A4
+                
+                const pdfWidth = pdf.internal.pageSize.getWidth(); // = 210mm
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width; // Calcul exact de la hauteur
+                
+                // On ajoute l'image au PDF
+                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                pdf.save(`AVENCIA_${state.meta.number || 'DOC'}.pdf`);
+
+            } catch (err) {
+                console.error("Erreur PDF:", err);
+                alert("Une erreur s'est produite lors de la génération. Veuillez réessayer.");
+            } finally {
+                // Réinitialiser UX
+                state.isGenerating = false;
+                document.querySelectorAll('.generate-icon, .btn-text').forEach(el => el.classList.remove('hidden'));
+                document.querySelectorAll('.loading-icon').forEach(el => el.classList.add('hidden'));
+            }
+        }
+
+        // --- RENDU UI EDITEUR ---
+        function renderItemsEditor() {
+            const container = document.getElementById('items-container');
+            container.innerHTML = state.items.map(item => `
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 relative group animate-logo">
+                    <button onclick="removeItem(${item.id})" class="absolute -top-2 -right-2 bg-white text-red-500 p-1 rounded-full shadow border opacity-0 group-hover:opacity-100 transition"><i data-lucide="x" class="w-4 h-4"></i></button>
+                    <div class="grid grid-cols-1 gap-2">
+                        <input type="text" placeholder="Désignation de l'article" class="input-field text-xs font-bold" value="${item.name}" oninput="updateItem(${item.id}, 'name', this.value)">
+                        <textarea placeholder="Description (optionnelle)" class="input-field text-xs h-12" oninput="updateItem(${item.id}, 'description', this.value)">${item.description || ''}</textarea>
+                        <div class="grid grid-cols-3 gap-2 mt-1">
+                            <div><label class="text-[9px] text-slate-400 uppercase font-bold">Qté</label><input type="number" class="input-field py-1 px-2" value="${item.qty}" oninput="updateItem(${item.id}, 'qty', this.value)"></div>
+                            <div><label class="text-[9px] text-slate-400 uppercase font-bold">Prix unitaire</label><input type="number" class="input-field py-1 px-2" value="${item.price}" oninput="updateItem(${item.id}, 'price', this.value)"></div>
+                            <div class="flex items-end justify-end"><span class="font-black text-xs text-[#0a1b4f]">${(item.qty * item.price).toFixed(2)} $</span></div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        // --- RENDU PDF AVEC 5 MODELES ---
+        function renderPreview() {
+            const container = document.getElementById('invoice-preview');
+            const isQuote = state.docType === 'quote';
+            const docTypeName = isQuote ? 'DEVIS' : 'FACTURE';
+            const primary = state.primaryColor || '#0a1b4f';
+            const sub = calculateSubtotal();
+            const tax = calculateVAT();
+            const total = calculateTotal();
+            
+            // L'avatar chic si pas de logo
+            const logoHtml = state.logo 
+                ? `<img src="${state.logo}" class="max-h-16 w-auto object-contain" />` 
+                : `<div class="w-14 h-14 rounded-xl flex items-center justify-center font-bold text-white text-2xl shadow-md" style="background: linear-gradient(135deg, ${primary}, #2a3b6f);">${(state.provider.name.charAt(0) || 'A').toUpperCase()}</div>`;
+
+            // Commun à tous les modèles : Format A4 Strict avec hauteur de 1123px minimum
+            const a4Wrapper = `style="width: 794px; min-height: 1123px; background: white; margin: 0 auto; position: relative; display: flex; flex-direction: column;"`;
+
+            let htmlContent = '';
+
+            if (state.selectedTemplate === 'modern') {
+                htmlContent = `
+                <div class="text-slate-800 p-[60px]" ${a4Wrapper}>
+                    <div class="absolute top-0 left-0 right-0 h-3" style="background-color: ${primary}"></div>
+                    <div class="flex justify-between items-start mt-4 mb-14">
+                        <div class="flex flex-col">
+                            ${logoHtml}
+                            <h2 class="font-bold text-lg mt-4 text-slate-800 tracking-tight">${state.provider.name || 'Mon Entreprise'}</h2>
+                            <p class="text-xs text-slate-500 max-w-[250px] whitespace-pre-line mt-1 leading-relaxed">${state.provider.address || 'Adresse non renseignée'}</p>
+                            <p class="text-xs text-slate-500 mt-1">${state.provider.phone}  ${state.provider.email ? `• ${state.provider.email}` : ''}</p>
+                            ${state.provider.id ? `<p class="text-[10px] text-slate-400 mt-2 uppercase font-bold tracking-wider">${state.provider.id}</p>` : ''}
+                        </div>
+                        <div class="text-right">
+                            <h1 class="text-4xl font-black mb-2 tracking-tighter" style="color: ${primary}">${docTypeName}</h1>
+                            <div class="bg-slate-50 rounded-lg p-3 inline-block border border-slate-100 mt-2">
+                                <p class="text-sm font-bold text-slate-700">N° ${state.meta.number}</p>
+                                <p class="text-[10px] text-slate-500 mt-1 uppercase font-semibold">Date : ${state.meta.date}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-12 border-l-4 pl-4" style="border-color: ${primary}">
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Facturé à</p>
+                        <h3 class="font-bold text-xl text-slate-800">${state.client.name || 'Nom du Client'}</h3>
+                        <p class="text-sm text-slate-600 mt-1 max-w-[300px]">${state.client.address || 'Adresse du client non renseignée'}</p>
+                    </div>
+
+                    <div class="flex-1 mb-8">
+                        <table class="w-full text-left text-sm border-collapse">
+                            <thead>
+                                <tr>
+                                    <th class="py-3 px-4 text-white font-semibold rounded-tl-lg w-1/2" style="background-color: ${primary}">Désignation</th>
+                                    <th class="py-3 px-4 text-white font-semibold text-center" style="background-color: ${primary}">Qté</th>
+                                    <th class="py-3 px-4 text-white font-semibold text-right" style="background-color: ${primary}">Prix unitaire</th>
+                                    <th class="py-3 px-4 text-white font-semibold text-right rounded-tr-lg" style="background-color: ${primary}">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${state.items.map((i, index) => `
+                                    <tr class="${index % 2 === 0 ? 'bg-slate-50' : 'bg-white'} border-b border-slate-100">
+                                        <td class="py-4 px-4"><p class="font-bold text-slate-800">${i.name || '---'}</p>${i.description ? `<p class="text-xs text-slate-500 mt-1">${i.description.replace(/\n/g, '<br>')}</p>` : ''}</td>
+                                        <td class="py-4 px-4 text-center font-medium text-slate-600">${i.qty}</td>
+                                        <td class="py-4 px-4 text-right font-medium text-slate-600">${i.price.toFixed(2)} $</td>
+                                        <td class="py-4 px-4 text-right font-black text-slate-800">${(i.qty * i.price).toFixed(2)} $</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="flex justify-end mb-12">
+                        <div class="w-[300px]">
+                            <div class="flex justify-between py-2 text-sm text-slate-600 border-b border-slate-100"><span>Prix sans taxe</span><span>${sub.toFixed(2)} $</span></div>
+                            <div class="flex justify-between py-2 text-sm text-slate-600 border-b border-slate-100"><span>Taxe (${state.vatRate}%)</span><span>${tax.toFixed(2)} $</span></div>
+                            <div class="flex justify-between items-center py-4 mt-2 bg-slate-50 rounded-xl px-4 border border-slate-100"><span class="font-bold text-slate-800">TOTAL TTC</span><span class="font-black text-2xl" style="color: ${primary}">${total.toFixed(2)} $</span></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto border-t-2 border-slate-100 pt-6 flex justify-between gap-8 text-xs">
+                        <div class="flex-1"><p class="font-bold text-slate-800 uppercase tracking-wider mb-2">Informations de paiement</p><p class="text-slate-600 whitespace-pre-line leading-relaxed">${state.bankInfo || 'Veuillez régler à réception.'}</p></div>
+                        <div class="text-right"><p class="font-bold text-slate-800 uppercase tracking-wider mb-2">${isQuote ? 'Conditions' : 'Note'}</p><p class="text-slate-500">${isQuote ? 'Ce devis est valable 30 jours.' : 'Merci pour votre confiance.'}</p></div>
+                    </div>
+                </div>`;
+            } 
+            else if (state.selectedTemplate === 'classic') {
+                htmlContent = `
+                <div class="p-[60px] font-serif text-slate-800" ${a4Wrapper}>
+                    <div class="flex justify-between items-end mb-8 border-b-2 pb-6 gap-4" style="border-color: ${primary}">
+                        <div class="flex-1">${state.logo ? `<img src="${state.logo}" class="max-h-16 w-auto object-contain" />` : ''}</div>
+                        <div class="text-center flex-1">
+                            <h1 class="text-3xl font-bold uppercase tracking-widest whitespace-nowrap" style="color: ${primary}">${docTypeName}</h1>
+                            <p class="text-lg mt-2 font-bold" style="color: ${primary}">N° ${state.meta.number}</p>
+                        </div>
+                        <div class="flex-1 text-right text-sm">Date : ${state.meta.date}</div>
+                    </div>
+                    <div class="flex justify-between mb-10 gap-8">
+                        <div class="flex-1 border p-4" style="border-color: ${primary}">
+                            <p class="font-bold underline mb-2 text-sm uppercase" style="color: ${primary}">Émetteur :</p>
+                            <h2 class="font-bold text-lg">${state.provider.name || '-'}</h2>
+                            <p class="text-sm whitespace-pre-line mt-1">${state.provider.address || '-'}</p>
+                            <p class="text-sm mt-1">Tél: ${state.provider.phone || '-'}</p>
+                            <p class="text-sm">Email: ${state.provider.email || '-'}</p>
+                            ${state.provider.id ? `<p class="text-xs mt-2 italic">${state.provider.id}</p>` : ''}
+                        </div>
+                        <div class="flex-1 border p-4" style="border-color: ${primary}">
+                            <p class="font-bold underline mb-2 text-sm uppercase" style="color: ${primary}">Client :</p>
+                            <h3 class="font-bold text-lg">${state.client.name || "-"}</h3>
+                            <p class="text-sm mt-1">${state.client.address || "-"}</p>
+                        </div>
+                    </div>
+                    <div class="flex-1 mb-8">
+                        <table class="w-full text-left border-collapse border text-sm" style="border-color: ${primary}">
+                            <thead>
+                                <tr class="text-white" style="background-color: ${primary}">
+                                    <th class="py-2 px-3 border font-bold" style="border-color: ${primary}">Désignation</th>
+                                    <th class="py-2 px-3 border font-bold text-center w-16" style="border-color: ${primary}">Qté</th>
+                                    <th class="py-2 px-3 border font-bold text-right w-24" style="border-color: ${primary}">P.U ($)</th>
+                                    <th class="py-2 px-3 border font-bold text-right w-28" style="border-color: ${primary}">Montant ($)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${state.items.map(i => `
+                                    <tr>
+                                        <td class="py-2 px-3 border" style="border-color: ${primary}"><strong>${i.name || "---"}</strong>${i.description ? `<div class="text-xs mt-1 text-gray-700">${i.description.replace(/\n/g, '<br>')}</div>` : ''}</td>
+                                        <td class="py-2 px-3 border text-center" style="border-color: ${primary}">${i.qty}</td>
+                                        <td class="py-2 px-3 border text-right" style="border-color: ${primary}">${i.price.toFixed(2)}</td>
+                                        <td class="py-2 px-3 border text-right font-medium" style="border-color: ${primary}">${(i.qty * i.price).toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="flex justify-end mb-10">
+                        <table class="w-64 border-collapse border text-sm" style="border-color: ${primary}">
+                            <tbody>
+                                <tr><td class="py-2 px-3 border font-bold" style="border-color: ${primary}">Prix sans taxe</td><td class="py-2 px-3 border text-right" style="border-color: ${primary}">${sub.toFixed(2)} $</td></tr>
+                                <tr><td class="py-2 px-3 border font-bold" style="border-color: ${primary}">Taxe (${state.vatRate}%)</td><td class="py-2 px-3 border text-right" style="border-color: ${primary}">${tax.toFixed(2)} $</td></tr>
+                                <tr class="text-white" style="background-color: ${primary}"><td class="py-2 px-3 border font-bold text-lg" style="border-color: ${primary}">TOTAL</td><td class="py-2 px-3 border text-right font-bold text-lg" style="border-color: ${primary}">${total.toFixed(2)} $</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-auto text-sm border p-4" style="border-color: ${primary}">
+                        <p class="font-bold underline mb-1" style="color: ${primary}">Paiement et Conditions :</p>
+                        <p class="whitespace-pre-line text-xs">${state.bankInfo || 'Payable à réception.'}</p>
+                    </div>
+                </div>`;
+            }
+            else if (state.selectedTemplate === 'corporate') {
+                htmlContent = `
+                <div class="text-slate-800" ${a4Wrapper}>
+                    <div class="text-white p-[60px] flex justify-between items-center" style="background-color: ${primary}; height: 220px;">
+                        <div class="flex items-center gap-6">
+                            ${state.logo ? `<div class="bg-white p-2 rounded-lg shrink-0"><img src="${state.logo}" class="max-h-20 w-auto object-contain" /></div>` : ''}
+                            <div>
+                                <h1 class="text-3xl font-bold tracking-tight">${state.provider.name || 'MON ENTREPRISE'}</h1>
+                                <p class="text-white/80 text-sm mt-1">${state.provider.email}</p>
+                                <p class="text-white/80 text-sm">${state.provider.phone}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <h2 class="text-4xl font-light tracking-widest text-white/90 uppercase">${docTypeName}</h2>
+                            <p class="text-white font-bold mt-1">N° ${state.meta.number}</p>
+                        </div>
+                    </div>
+                    <div class="p-[60px] flex-1 flex flex-col">
+                        <div class="flex flex-col md:flex-row justify-between mb-12 gap-8">
+                            <div class="flex-1">
+                                <p class="text-xs font-bold uppercase text-slate-400 mb-2">Facturer à</p>
+                                <div class="bg-slate-50 p-4 rounded-lg border-l-4" style="border-left-color: ${primary}">
+                                    <h3 class="font-bold text-lg text-slate-900">${state.client.name || "Client"}</h3>
+                                    <p class="text-sm text-slate-700 mt-1">${state.client.address || "Adresse"}</p>
+                                </div>
+                            </div>
+                            <div class="flex-1 flex flex-col items-end text-right justify-center">
+                                <div class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm w-full max-w-xs">
+                                    <span class="text-slate-500 font-medium">Date :</span><span class="font-bold text-slate-900">${state.meta.date}</span>
+                                    <span class="text-slate-500 font-medium">ID / RCCM :</span><span class="text-slate-900">${state.provider.id || '---'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-12 flex-1">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="text-white" style="background-color: ${primary}">
+                                        <th class="py-3 px-4 font-medium text-sm rounded-tl-lg">Description</th>
+                                        <th class="py-3 px-4 font-medium text-sm text-center">Quantité</th>
+                                        <th class="py-3 px-4 font-medium text-sm text-right">Prix Unitaire</th>
+                                        <th class="py-3 px-4 font-medium text-sm text-right rounded-tr-lg">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${state.items.map((i, index) => `
+                                        <tr class="${index % 2 === 0 ? 'bg-slate-50' : 'bg-white'} border-b border-slate-100">
+                                            <td class="py-4 px-4 font-bold text-slate-800">${i.name || '---'} ${i.description ? `<br><span class="text-xs text-slate-500 font-normal">${i.description.replace(/\n/g, '<br>')}</span>` : ''}</td>
+                                            <td class="py-4 px-4 text-center text-slate-600">${i.qty}</td>
+                                            <td class="py-4 px-4 text-right text-slate-600">${i.price.toFixed(2)} $</td>
+                                            <td class="py-4 px-4 text-right font-black text-slate-800">${(i.qty * i.price).toFixed(2)} $</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="flex justify-end mb-16">
+                            <div class="w-1/2">
+                                <div class="flex justify-between py-2 px-4 border-b border-slate-200"><span class="text-slate-600 font-medium">Prix sans taxe</span><span class="font-bold text-slate-900">${sub.toFixed(2)} $</span></div>
+                                <div class="flex justify-between py-2 px-4 border-b border-slate-200"><span class="text-slate-600 font-medium">Taxe (${state.vatRate}%)</span><span class="font-bold text-slate-900">${tax.toFixed(2)} $</span></div>
+                                <div class="flex justify-between py-3 px-4 text-white rounded-lg mt-4" style="background-color: ${primary}"><span class="font-bold text-lg">TOTAL TTC</span><span class="font-bold text-xl">${total.toFixed(2)} $</span></div>
+                            </div>
+                        </div>
+                        <div class="mt-auto border-t-2 border-slate-100 pt-6 flex flex-col gap-2 text-sm">
+                            <p class="font-bold text-slate-900 mb-1">Informations de paiement :</p>
+                            <p class="text-slate-600 whitespace-pre-line">${state.bankInfo || 'Payable à réception'}</p>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            else if (state.selectedTemplate === 'elegant') {
+                htmlContent = `
+                <div class="text-slate-800 relative" ${a4Wrapper}>
+                    <div class="absolute top-0 left-0 w-full h-4" style="background-color: ${primary}"></div>
+                    <div class="p-[60px] flex-1 flex flex-col mt-4 h-full">
+                        <div class="flex justify-between items-start mb-16">
+                            <div class="flex-1">
+                                ${state.logo ? `<img src="${state.logo}" class="max-h-24 w-auto object-contain mb-6" />` : `<h1 class="text-3xl font-light tracking-widest uppercase mb-6" style="color: ${primary}">${state.provider.name || 'MON ENTREPRISE'}</h1>`}
+                                <p class="text-sm text-slate-500 whitespace-pre-line">${state.provider.address || 'Adresse'}</p>
+                                <p class="text-sm text-slate-500 mt-2">${state.provider.phone} • ${state.provider.email}</p>
+                            </div>
+                            <div class="text-right flex-1">
+                                <h2 class="text-3xl font-semibold mb-2" style="color: ${primary}">${docTypeName}</h2>
+                                <p class="text-slate-400 font-medium text-lg mb-6">#${state.meta.number}</p>
+                                <div class="grid grid-cols-2 gap-4 text-sm text-right justify-end ml-auto max-w-[200px]">
+                                    <span class="text-slate-400">Date</span><span class="font-medium text-slate-800">${state.meta.date}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-16">
+                            <h3 class="text-xs font-bold uppercase tracking-widest mb-4" style="color: ${primary}">Facturé à</h3>
+                            <p class="font-medium text-lg text-slate-800">${state.client.name || "Client"}</p>
+                            <p class="text-sm text-slate-500 mt-1">${state.client.address}</p>
+                        </div>
+                        <div class="mb-12 flex-1">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr>
+                                        <th class="py-4 border-y border-slate-200 font-medium text-slate-400 text-sm uppercase tracking-wider">Description</th>
+                                        <th class="py-4 border-y border-slate-200 font-medium text-slate-400 text-sm uppercase tracking-wider text-center">Qté</th>
+                                        <th class="py-4 border-y border-slate-200 font-medium text-slate-400 text-sm uppercase tracking-wider text-right">Prix Un.</th>
+                                        <th class="py-4 border-y border-slate-200 font-medium text-slate-400 text-sm uppercase tracking-wider text-right">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${state.items.map(i => `
+                                        <tr class="border-b border-slate-100">
+                                            <td class="py-5 pr-4 text-slate-800 font-medium">${i.name || '---'}${i.description ? `<br><span class="text-xs text-slate-400 font-normal">${i.description.replace(/\n/g, '<br>')}</span>` : ''}</td>
+                                            <td class="py-5 px-4 text-center text-slate-500">${i.qty}</td>
+                                            <td class="py-5 px-4 text-right text-slate-500">${i.price.toFixed(2)} $</td>
+                                            <td class="py-5 px-4 text-right font-bold text-slate-800">${(i.qty * i.price).toFixed(2)} $</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="flex justify-end mb-16">
+                            <div class="w-64">
+                                <div class="flex justify-between py-2 text-slate-600"><span>Prix sans taxe</span><span>${sub.toFixed(2)} $</span></div>
+                                <div class="flex justify-between py-2 text-slate-600 mb-2"><span>Taxe (${state.vatRate}%)</span><span>${tax.toFixed(2)} $</span></div>
+                                <div class="flex justify-between py-4 border-t-2 border-slate-800"><span class="font-bold text-lg text-slate-800">TOTAL</span><span class="font-bold text-xl" style="color: ${primary}">${total.toFixed(2)} $</span></div>
+                            </div>
+                        </div>
+                        <div class="mt-auto">
+                            <h4 class="font-semibold text-slate-800 mb-2">Paiement & Notes</h4>
+                            <p class="text-slate-500 whitespace-pre-line text-sm leading-relaxed">${state.bankInfo || 'Payable à réception.'}</p>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            else if (state.selectedTemplate === 'bold') {
+                htmlContent = `
+                <div class="flex text-slate-800 flex-row" ${a4Wrapper}>
+                    <div class="w-1/3 text-white p-[40px] flex flex-col" style="background-color: ${primary}; min-height: 1123px;">
+                        ${state.logo 
+                            ? `<div class="bg-white p-4 rounded-xl mb-12 flex justify-center"><img src="${state.logo}" class="max-h-24 w-auto object-contain" /></div>` 
+                            : `<div class="w-20 h-20 bg-white text-4xl font-black rounded-2xl flex items-center justify-center mb-12 mx-auto" style="color: ${primary}">${(state.provider.name.charAt(0) || 'A').toUpperCase()}</div>`}
+                        
+                        <div class="mb-12">
+                            <h2 class="text-2xl font-bold mb-4">${state.provider.name || 'Mon Entreprise'}</h2>
+                            <p class="text-white/80 text-sm whitespace-pre-line mb-4 leading-relaxed">${state.provider.address || 'Adresse'}</p>
+                            <p class="text-white/80 text-sm">${state.provider.phone}</p>
+                            <p class="text-white/80 text-sm mt-1">${state.provider.email}</p>
+                        </div>
+                        <div class="mb-auto">
+                            <div><p class="text-white/50 text-xs uppercase tracking-widest mb-1">RCCM / ID</p><p class="text-sm font-medium">${state.provider.id || '---'}</p></div>
+                        </div>
+                        <div class="mt-12 pt-8 border-t border-white/20">
+                            <p class="text-white/50 text-xs uppercase tracking-widest mb-2">Infos Paiement</p>
+                            <p class="text-xs text-white/80 whitespace-pre-line leading-relaxed">${state.bankInfo || 'À réception'}</p>
+                        </div>
+                    </div>
+                    <div class="w-2/3 p-[50px] flex flex-col bg-white">
+                        <div class="flex justify-between items-end mb-12">
+                            <div><h1 class="text-5xl font-black text-slate-900 tracking-tighter mb-2 uppercase">${docTypeName}</h1><p class="text-xl text-slate-400 font-medium">#${state.meta.number}</p></div>
+                            <div class="text-right"><p class="text-sm text-slate-500 mb-1">Date : <span class="font-semibold text-slate-800">${state.meta.date}</span></p></div>
+                        </div>
+                        <div class="mb-12 p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Facturé à</p>
+                            <h3 class="font-bold text-xl text-slate-900 mb-1">${state.client.name || "Nom du client"}</h3>
+                            <p class="text-slate-600 text-sm">${state.client.address || "Adresse"}</p>
+                        </div>
+                        <div class="mb-12 flex-1">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr>
+                                        <th class="py-3 font-bold text-slate-900 border-b-2 border-slate-900 w-1/2">Désignation</th>
+                                        <th class="py-3 font-bold text-slate-900 border-b-2 border-slate-900 text-center">Qté</th>
+                                        <th class="py-3 font-bold text-slate-900 border-b-2 border-slate-900 text-right">P.U</th>
+                                        <th class="py-3 font-bold text-slate-900 border-b-2 border-slate-900 text-right">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${state.items.map(i => `
+                                        <tr class="border-b border-slate-100">
+                                            <td class="py-4 pr-4"><p class="font-bold text-slate-800">${i.name || '---'}</p>${i.description ? `<p class="text-xs text-slate-500 mt-1">${i.description.replace(/\n/g, '<br>')}</p>` : ''}</td>
+                                            <td class="py-4 px-2 text-center text-slate-600">${i.qty}</td>
+                                            <td class="py-4 px-2 text-right text-slate-600">${i.price.toFixed(2)} $</td>
+                                            <td class="py-4 px-2 text-right font-black text-slate-800">${(i.qty * i.price).toFixed(2)} $</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="flex flex-col items-end mt-auto">
+                            <div class="w-64 text-right mb-6">
+                                <div class="flex justify-between py-1 text-slate-500"><span>Prix sans taxe</span><span>${sub.toFixed(2)} $</span></div>
+                                <div class="flex justify-between py-1 text-slate-500"><span>Taxe (${state.vatRate}%)</span><span>${tax.toFixed(2)} $</span></div>
+                            </div>
+                            <div class="text-white p-6 rounded-2xl w-72 flex justify-between items-center shadow-lg" style="background-color: ${primary}">
+                                <span class="text-lg font-medium opacity-80">Total TTC</span><span class="text-3xl font-black">${total.toFixed(2)} $</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+
+            container.innerHTML = htmlContent;
+        }
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            renderItemsEditor();
+            renderPreview();
+            
+            if(state.logo === 'Logo.png') {
+                document.getElementById('logo-preview-area').classList.remove('hidden');
+                document.getElementById('logo-img').src = 'Logo.png';
+            }
+
+            const fields = ['prov-name', 'prov-address', 'prov-phone', 'prov-email', 'prov-id', 'cli-name', 'cli-address', 'meta-number', 'meta-date', 'vat-rate', 'bank-info', 'primaryColor'];
+            fields.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.oninput = (e) => {
+                    const parts = id.split('-');
+                    if(parts[0] === 'prov') state.provider[parts[1]] = e.target.value;
+                    else if(parts[0] === 'cli') state.client[parts[1]] = e.target.value;
+                    else if(parts[0] === 'meta') state.meta[parts[1]] = e.target.value;
+                    else state[id === 'vat-rate' ? 'vatRate' : id] = (id === 'vat-rate' ? Number(e.target.value) : e.target.value);
+                    renderPreview();
+                };
+            });
+        });
+
+        // Logos
+        const handleLogo = (f) => {
+            const r = new FileReader();
+            r.onload = (e) => {
+                state.logo = e.target.result;
+                document.getElementById('logo-preview-area').classList.remove('hidden');
+                document.getElementById('logo-img').src = state.logo;
+                renderPreview();
+            };
+            r.readAsDataURL(f);
+        };
+        document.getElementById('logo-input').onchange = (e) => handleLogo(e.target.files[0]);
+        document.getElementById('chat-logo-input').onchange = (e) => {
+            handleLogo(e.target.files[0]);
+            addChatMessage('user', "🖼️ Logo ajouté !");
+            document.getElementById('chat-logo-upload').classList.add('hidden');
+            currentStep++;
+            showNextStep();
+        };
+        const removeLogo = () => { state.logo = null; document.getElementById('logo-preview-area').classList.add('hidden'); renderPreview(); };
+        const resetChat = () => { currentStep = 0; document.getElementById('chat-messages').innerHTML = ''; showNextStep(); };
+    </script>
+</body>
+</html>
