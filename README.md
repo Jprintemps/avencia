@@ -44,3 +44,17 @@ Ce projet utilise une architecture Node.js native (sans framework) pour le backe
 ## Variables d'environnement
 
 Les secrets sont configurés dans `backend/.env`. Ne partagez jamais ce fichier en production.
+
+## Déploiement via GitHub
+
+### 1. Préparation du dépôt
+- Créez un nouveau dépôt sur GitHub.
+- Initialisez git localement : `git init`.
+- Ajoutez les fichiers : `git add .`.
+- Commitez : `git commit -m "Initial commit"`.
+- Liez au dépôt distant et poussez le code.
+
+### 2. Hébergement suggéré
+- **Frontend** : GitHub Pages, Vercel ou Netlify (gratuit).
+- **Backend** : Render, Railway ou Fly.io (nécessite une configuration pour SQLite ou une DB externe).
+- **Base de données** : Pour SQLite en production, utilisez un volume persistant sur votre hébergeur backend.
