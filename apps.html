@@ -8,6 +8,16 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Scripts Auth & DB -->
+    <script src="frontend/db/localDB.js"></script>
+    <script src="frontend/auth/authClient.js"></script>
+    <script>
+        // Protection de la page : Rediriger vers login.html si non connecté
+        if (!localStorage.getItem('user')) {
+            window.location.href = 'login.html';
+        }
+    </script>
+
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
@@ -658,38 +668,41 @@
 
         // --- RESTE DU SCRIPT SÉCURISÉ ---
         function initAuth() {
-            const authScreen = document.getElementById('auth-screen');
+            const user = JSON.parse(localStorage.getItem('user'));
             const appWrapper = document.getElementById('app-wrapper');
 
-            if (!currentUser) {
-                if(authScreen) authScreen.classList.remove('hidden');
-                if(appWrapper) appWrapper.classList.add('hidden');
-            } else {
-                if(authScreen) authScreen.classList.add('hidden');
-                if(appWrapper) appWrapper.classList.remove('hidden');
-                
-                const sbCompany = document.getElementById('sidebar-company');
-                const sbAvatar = document.getElementById('sidebar-avatar');
-                const mobCompany = document.getElementById('mob-sidebar-company');
-                const mobAvatar = document.getElementById('mob-sidebar-avatar');
-                
-                if(sbCompany) sbCompany.innerText = currentUser.name;
-                if(sbAvatar) sbAvatar.innerText = currentUser.name.charAt(0);
-                if(mobCompany) mobCompany.innerText = currentUser.name;
-                if(mobAvatar) mobAvatar.innerText = currentUser.name.charAt(0);
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
 
-                loadProfileToState();
-                
-                if (window.innerWidth < 1024) {
-                    if (appHistory.length > 0) {
-                        switchAppView('documents');
-                    } else {
-                        switchAppView('editor');
-                        setUIMode('easy');
-                    }
+            if(appWrapper) appWrapper.classList.remove('hidden');
+            
+            const sbCompany = document.getElementById('sidebar-company');
+            const sbAvatar = document.getElementById('sidebar-avatar');
+            const mobCompany = document.getElementById('mob-sidebar-company');
+            const mobAvatar = document.getElementById('mob-sidebar-avatar');
+            
+            if(sbCompany) sbCompany.innerText = user.name;
+            if(sbAvatar) sbAvatar.innerText = user.name.charAt(0);
+            if(mobCompany) mobCompany.innerText = user.name;
+            if(mobAvatar) mobAvatar.innerText = user.name.charAt(0);
+
+            // Charger les infos de l'utilisateur dans le state
+            state.provider.name = user.name;
+            state.provider.email = user.email;
+
+            loadProfileToState();
+            
+            if (window.innerWidth < 1024) {
+                if (appHistory.length > 0) {
+                    switchAppView('documents');
                 } else {
-                    switchAppView(appHistory.length > 0 ? 'documents' : 'editor');
+                    switchAppView('editor');
+                    setUIMode('easy');
                 }
+            } else {
+                switchAppView(appHistory.length > 0 ? 'documents' : 'editor');
             }
         }
 
@@ -709,24 +722,28 @@
             }
         }
 
-        function handleLogout() {
+        async function handleLogout() {
             if(confirm("Voulez-vous vous déconnecter ?")) {
-                currentUser = null;
-                localStorage.removeItem('avencia_user');
-                initAuth();
+                if (window.authClient) {
+                    await authClient.logout();
+                } else {
+                    localStorage.removeItem('user');
+                    window.location.href = 'login.html';
+                }
             }
         }
 
         function loadProfileToState() {
-            if(currentUser) {
-                state.provider.name = currentUser.name || "";
-                state.provider.email = currentUser.email || "";
-                state.provider.address = currentUser.address || "";
-                state.provider.phone = currentUser.phone || "";
-                state.provider.id = currentUser.id || "";
-                state.primaryColor = currentUser.color || "#0a1b4f";
-                state.vatRate = currentUser.vatRate || 0;
-                state.bankInfo = currentUser.bankInfo || "";
+            const user = JSON.parse(localStorage.getItem('user'));
+            if(user) {
+                state.provider.name = user.name || "";
+                state.provider.email = user.email || "";
+                state.provider.address = user.address || "";
+                state.provider.phone = user.phone || "";
+                state.provider.id = user.id || "";
+                state.primaryColor = user.color || "#0a1b4f";
+                state.vatRate = user.vatRate || 0;
+                state.bankInfo = user.bankInfo || "";
 
                 const ids = ['prov-name','prov-email','prov-address','prov-phone','prov-id','primaryColor','vat-rate','bank-info'];
                 ids.forEach(id => {
@@ -741,14 +758,14 @@
                 });
 
                 const safeSet = (id, val) => { const e = document.getElementById(id); if(e) e.value = val; };
-                safeSet('prof-name', currentUser.name || "");
-                safeSet('prof-email', currentUser.email || "");
-                safeSet('prof-address', currentUser.address || "");
-                safeSet('prof-phone', currentUser.phone || "");
-                safeSet('prof-id', currentUser.id || "");
-                safeSet('prof-color', currentUser.color || "#0a1b4f");
-                safeSet('prof-vat', currentUser.vatRate || 0);
-                safeSet('prof-bank', currentUser.bankInfo || "");
+                safeSet('prof-name', user.name || "");
+                safeSet('prof-email', user.email || "");
+                safeSet('prof-address', user.address || "");
+                safeSet('prof-phone', user.phone || "");
+                safeSet('prof-id', user.id || "");
+                safeSet('prof-color', user.color || "#0a1b4f");
+                safeSet('prof-vat', user.vatRate || 0);
+                safeSet('prof-bank', user.bankInfo || "");
 
                 renderPreview();
             }

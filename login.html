@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - Avencia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .input-field {
+            background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.75rem;
+            padding: 0.75rem 1rem; font-size: 0.875rem; outline: none; transition: all 0.2s; width: 100%;
+        }
+        .input-field:focus { background-color: #ffffff; border-color: #0a1b4f; box-shadow: 0 0 0 2px rgba(10, 27, 79, 0.15); }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <div class="mb-8 flex justify-center">
+            <img src="Logo.png" alt="Avencia" class="h-16 object-contain" onerror="this.onerror=null; this.outerHTML='<h1 class=\'font-black text-4xl text-[#0a1b4f]\'>AVENCIA</h1>'">
+        </div>
+        
+        <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-200">
+            <div id="login-box">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Bon retour !</h2>
+                <p class="text-slate-500 mb-8 text-sm">Connectez-vous pour gérer vos factures.</p>
+                
+                <form id="login-form" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
+                        <input type="email" id="email" class="input-field" placeholder="nom@entreprise.com" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mot de passe</label>
+                        <input type="password" id="password" class="input-field" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="w-full bg-[#0a1b4f] hover:bg-[#071336] text-white py-3.5 rounded-xl font-bold transition-all shadow-md mt-4 active:scale-95">
+                        Se connecter
+                    </button>
+                </form>
+                <p class="text-center mt-6 text-sm text-slate-500">
+                    Pas encore de compte ? <button onclick="toggleAuth()" class="text-[#0a1b4f] font-bold hover:underline">S'inscrire</button>
+                </p>
+            </div>
+
+            <div id="register-box" class="hidden">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Créer un compte</h2>
+                <p class="text-slate-500 mb-8 text-sm">Commencez à facturer en quelques secondes.</p>
+                
+                <form id="register-form" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nom de l'entreprise</label>
+                        <input type="text" id="reg-name" class="input-field" placeholder="Ma Super Entreprise" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
+                        <input type="email" id="reg-email" class="input-field" placeholder="nom@entreprise.com" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mot de passe</label>
+                        <input type="password" id="reg-password" class="input-field" placeholder="Min. 8 caractères" required minlength="8">
+                    </div>
+                    <button type="submit" class="w-full bg-[#0a1b4f] hover:bg-[#071336] text-white py-3.5 rounded-xl font-bold transition-all shadow-md mt-4 active:scale-95">
+                        Créer mon compte
+                    </button>
+                </form>
+                <p class="text-center mt-6 text-sm text-slate-500">
+                    Déjà un compte ? <button onclick="toggleAuth()" class="text-[#0a1b4f] font-bold hover:underline">Se connecter</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="frontend/db/localDB.js"></script>
+    <script src="frontend/auth/authClient.js"></script>
+    <script>
+        function toggleAuth() {
+            document.getElementById('login-box').classList.toggle('hidden');
+            document.getElementById('register-box').classList.toggle('hidden');
+        }
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const res = await authClient.login(email, password);
+                if (res.success) {
+                    window.location.href = 'apps.html';
+                } else {
+                    alert(res.error || 'Erreur de connexion');
+                }
+            } catch (err) {
+                alert('Erreur serveur');
+            }
+        });
+
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            
+            try {
+                const res = await authClient.register(email, password, name);
+                if (res.success) {
+                    window.location.href = 'apps.html';
+                } else {
+                    alert(res.error || 'Erreur d\'inscription');
+                }
+            } catch (err) {
+                alert('Erreur serveur');
+            }
+        });
+
+        // Rediriger si déjà connecté
+        if (localStorage.getItem('user')) {
+            window.location.href = 'apps.html';
+        }
+    </script>
+</body>
+</html>
