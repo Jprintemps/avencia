@@ -85,11 +85,16 @@
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const res = await authClient.login(email, password);
-            if (res.success) {
-                window.location.href = 'apps.html';
-            } else {
-                alert(res.error || 'Erreur de connexion');
+            
+            try {
+                const res = await authClient.login(email, password);
+                if (res.success) {
+                    window.location.href = 'apps.html';
+                } else {
+                    alert(res.error || 'Erreur de connexion');
+                }
+            } catch (err) {
+                alert('Erreur serveur');
             }
         });
 
@@ -98,16 +103,21 @@
             const name = document.getElementById('reg-name').value;
             const email = document.getElementById('reg-email').value;
             const password = document.getElementById('reg-password').value;
-            const res = await authClient.register(email, password, name);
-            if (res.success) {
-                window.location.href = 'apps.html';
-            } else {
-                alert(res.error || 'Erreur d\'inscription');
+            
+            try {
+                const res = await authClient.register(email, password, name);
+                if (res.success) {
+                    window.location.href = 'apps.html';
+                } else {
+                    alert(res.error || 'Erreur d\'inscription');
+                }
+            } catch (err) {
+                alert('Erreur serveur');
             }
         });
 
         // Rediriger si déjà connecté
-        if (localStorage.getItem('avencia_user') || localStorage.getItem('user')) {
+        if (localStorage.getItem('user')) {
             window.location.href = 'apps.html';
         }
     </script>
