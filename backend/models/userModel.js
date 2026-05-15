@@ -1,4 +1,4 @@
-const db = require('./db');
+const { dbProxy: db } = require('./db');
 
 const UserModel = {
     create: (user) => {

@@ -2,7 +2,7 @@ require('dotenv').config();
 
 const corsMiddleware = (req, res) => {
     const origin = req.headers.origin;
-    const allowedOrigin = process.env.FRONTEND_ORIGIN || 'http://localhost:3000';
+    const allowedOrigin = process.env.FRONTEND_ORIGIN || 'http://localhost:3001';
 
     if (origin === allowedOrigin) {
         res.setHeader('Access-Control-Allow-Origin', origin);
