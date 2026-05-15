@@ -2,7 +2,7 @@
  * Client d'authentification pour Avencia
  */
 const authClient = {
-    baseUrl: 'http://localhost:3001/api',
+    baseUrl: 'https://votre-app-backend.onrender.com/api',
     accessToken: null,
     user: null,
 
