@@ -1,97 +1,78 @@
 /**
- * Client d'authentification pour Avencia
+ * Auth client 100% local — no server, no DB
+ * Users are stored in localStorage as: avencia_accounts = { email: { name, passwordHash, id } }
+ * Session is stored as: avencia_user = { id, email, name, ... }
  */
 const authClient = {
-    baseUrl: 'http://localhost:3001/api',
-    accessToken: null,
     user: null,
 
+    // Simple hash using Web Crypto (SHA-256)
+    async _hash(password) {
+        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
+        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    },
+
+    _getAccounts() {
+        return JSON.parse(localStorage.getItem('avencia_accounts') || '{}');
+    },
+
+    _saveAccounts(accounts) {
+        localStorage.setItem('avencia_accounts', JSON.stringify(accounts));
+    },
+
     async register(email, password, name) {
-        const res = await fetch(`${this.baseUrl}/auth/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password, name })
-        });
-        const data = await res.json();
-        if (data.success) {
-            this.accessToken = data.data.accessToken;
-            this.user = data.data.user;
-            localStorage.setItem('user', JSON.stringify(this.user));
-            await localDB.open(this.user.id);
+        if (!email || !password || password.length < 8) {
+            return { success: false, error: 'Email ou mot de passe invalide (min 8 caractères)' };
         }
-        return data;
+        const accounts = this._getAccounts();
+        if (accounts[email]) {
+            return { success: false, error: 'Cet email est déjà utilisé' };
+        }
+        const passwordHash = await this._hash(password);
+        const id = crypto.randomUUID();
+        accounts[email] = { id, name, passwordHash };
+        this._saveAccounts(accounts);
+
+        this.user = { id, email, name };
+        localStorage.setItem('avencia_user', JSON.stringify(this.user));
+        // legacy key used by apps.html
+        localStorage.setItem('user', JSON.stringify(this.user));
+        await localDB.open(id);
+        return { success: true, data: { user: this.user } };
     },
 
     async login(email, password) {
-        const res = await fetch(`${this.baseUrl}/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-        });
-        const data = await res.json();
-        if (data.success) {
-            this.accessToken = data.data.accessToken;
-            this.user = data.data.user;
-            localStorage.setItem('user', JSON.stringify(this.user));
-            await localDB.open(this.user.id);
+        const accounts = this._getAccounts();
+        const account = accounts[email];
+        if (!account) {
+            return { success: false, error: 'Identifiants incorrects' };
         }
-        return data;
+        const passwordHash = await this._hash(password);
+        if (passwordHash !== account.passwordHash) {
+            return { success: false, error: 'Identifiants incorrects' };
+        }
+        this.user = { id: account.id, email, name: account.name };
+        localStorage.setItem('avencia_user', JSON.stringify(this.user));
+        localStorage.setItem('user', JSON.stringify(this.user));
+        await localDB.open(account.id);
+        return { success: true, data: { user: this.user } };
     },
 
-    async logout() {
-        await fetch(`${this.baseUrl}/auth/logout`, { method: 'POST' });
-        this.accessToken = null;
+    logout() {
         this.user = null;
+        localStorage.removeItem('avencia_user');
         localStorage.removeItem('user');
-        window.location.href = '/login.html'; // ou autre page de redirection
+        window.location.href = 'login.html';
     },
 
-    async refreshToken() {
-        const res = await fetch(`${this.baseUrl}/auth/refresh`, { method: 'POST' });
-        const data = await res.json();
-        if (data.success) {
-            this.accessToken = data.data.accessToken;
-        }
-        return data.success;
-    },
-
-    // Wrapper pour les requêtes fetch authentifiées
-    async fetch(url, options = {}) {
-        if (!this.accessToken) {
-            const refreshed = await this.refreshToken();
-            if (!refreshed) throw new Error('Session expirée');
-        }
-
-        options.headers = {
-            ...options.headers,
-            'Authorization': `Bearer ${this.accessToken}`
-        };
-
-        let response = await fetch(`${this.baseUrl}${url}`, options);
-
-        if (response.status === 401) {
-            const refreshed = await this.refreshToken();
-            if (refreshed) {
-                options.headers['Authorization'] = `Bearer ${this.accessToken}`;
-                response = await fetch(`${this.baseUrl}${url}`, options);
-            } else {
-                this.logout();
-            }
-        }
-
-        return response.json();
-    },
-
-    async init() {
-        const savedUser = localStorage.getItem('user');
-        if (savedUser) {
-            this.user = JSON.parse(savedUser);
-            await localDB.open(this.user.id);
-            await this.refreshToken();
+    init() {
+        const saved = localStorage.getItem('avencia_user') || localStorage.getItem('user');
+        if (saved) {
+            this.user = JSON.parse(saved);
+            localDB.open(this.user.id);
         }
     }
 };
 
-// Initialisation au chargement
 window.authClient = authClient;
 authClient.init();

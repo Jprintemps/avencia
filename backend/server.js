@@ -1,11 +1,8 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { handleRequest } = require('./router');
-const { initDB } = require('./models/db');
-require('dotenv').config({ path: __dirname + '/.env' });
 
-const PORT = process.env.PORT || 3001;
+const PORT = 3001;
 const ROOT = path.join(__dirname, '..');
 
 const MIME = {
@@ -18,37 +15,19 @@ const MIME = {
     '.ico':  'image/x-icon',
 };
 
-function serveStatic(req, res) {
-    let filePath = path.join(ROOT, req.url === '/' ? '/index.html' : req.url);
-    // strip query string
-    filePath = filePath.split('?')[0];
+const server = http.createServer((req, res) => {
+    let filePath = path.join(ROOT, req.url === '/' ? '/index.html' : req.url.split('?')[0]);
     const ext = path.extname(filePath);
-    if (!fs.existsSync(filePath) || !MIME[ext]) return false;
+
+    if (!fs.existsSync(filePath) || !MIME[ext]) {
+        res.writeHead(404);
+        return res.end('Not found');
+    }
+
     res.writeHead(200, { 'Content-Type': MIME[ext] });
     fs.createReadStream(filePath).pipe(res);
-    return true;
-}
+});
 
-initDB().then(() => {
-    const server = http.createServer(async (req, res) => {
-        // Serve static files first
-        if (req.method === 'GET' && !req.url.startsWith('/api')) {
-            if (serveStatic(req, res)) return;
-        }
-
-        let body = '';
-        req.on('data', chunk => { body += chunk.toString(); });
-        req.on('end', async () => {
-            try {
-                req.body = body ? JSON.parse(body) : {};
-            } catch (e) {
-                req.body = {};
-            }
-            await handleRequest(req, res);
-        });
-    });
-
-    server.listen(PORT, () => {
-        console.log(`Serveur Avencia démarré sur http://localhost:${PORT}`);
-    });
+server.listen(PORT, () => {
+    console.log(`Avencia démarré sur http://localhost:${PORT}`);
 });
