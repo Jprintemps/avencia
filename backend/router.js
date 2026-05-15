@@ -72,4 +72,4 @@ const handleRequest = async (req, res) => {
     }
 };
 
-module.exports = { handleRequest, registerRoute };
+module.exports = { handleRequest };
