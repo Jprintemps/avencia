@@ -5,10 +5,11 @@
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",
-    "dev": "node --watch backend/server.js"
+    "dev": "node --watch backend/server.js",
+    "db:init": "psql $DATABASE_URL -f backend/db_scripts/init_db.sql"
   },
   "dependencies": {
-    "sql.js": "^1.12.0",
+    "pg": "^8.11.0",
     "bcrypt": "^5.1.1",
     "jsonwebtoken": "^9.0.2",
     "dotenv": "^16.4.5"

@@ -1,37 +1,26 @@
-const { dbProxy: db } = require('./db');
+const db = require('./db');
 
 const UserModel = {
-    create: (user) => {
-        const stmt = db.prepare(`
-            INSERT INTO users (id, email, password_hash, name, created_at)
-            VALUES (?, ?, ?, ?, ?)
-        `);
-        return stmt.run(user.id, user.email, user.password_hash, user.name, user.created_at);
+    async create(user) {
+        const sql = `
+            INSERT INTO users (email, password, name)
+            VALUES ($1, $2, $3)
+            RETURNING *
+        `;
+        const res = await db.query(sql, [user.email, user.password_hash, user.name]);
+        return res.rows[0];
     },
 
-    findByEmail: (email) => {
-        const stmt = db.prepare('SELECT * FROM users WHERE email = ?');
-        return stmt.get(email);
+    async findByEmail(email) {
+        const sql = 'SELECT * FROM users WHERE email = $1';
+        const res = await db.query(sql, [email]);
+        return res.rows[0];
     },
 
-    findById: (id) => {
-        const stmt = db.prepare('SELECT id, email, name, created_at FROM users WHERE id = ?');
-        return stmt.get(id);
-    },
-
-    updateRefreshToken: (userId, token) => {
-        const stmt = db.prepare('UPDATE users SET refresh_token = ? WHERE id = ?');
-        return stmt.run(token, userId);
-    },
-
-    findByRefreshToken: (token) => {
-        const stmt = db.prepare('SELECT * FROM users WHERE refresh_token = ?');
-        return stmt.get(token);
-    },
-
-    updateProfile: (userId, data) => {
-        const stmt = db.prepare('UPDATE users SET name = ? WHERE id = ?');
-        return stmt.run(data.name, userId);
+    async findById(id) {
+        const sql = 'SELECT id, email, name, created_at FROM users WHERE id = $1';
+        const res = await db.query(sql, [id]);
+        return res.rows[0];
     }
 };
 

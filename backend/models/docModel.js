@@ -1,41 +1,29 @@
-const { dbProxy: db } = require('./db');
+const db = require('./db');
 
 const DocModel = {
-    create: (doc) => {
-        const stmt = db.prepare(`
-            INSERT INTO documents (id, user_id, type, data, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?)
-        `);
-        return stmt.run(doc.id, doc.user_id, doc.type, JSON.stringify(doc.data), doc.created_at, doc.updated_at);
+    async create(doc) {
+        const sql = `
+            INSERT INTO documents (user_id, type, data)
+            VALUES ($1, $2, $3)
+            RETURNING *
+        `;
+        const res = await db.query(sql, [doc.user_id, doc.type, JSON.stringify(doc.data)]);
+        return res.rows[0];
     },
 
-    findAllByUserId: (userId) => {
-        const stmt = db.prepare('SELECT * FROM documents WHERE user_id = ? ORDER BY created_at DESC');
-        const docs = stmt.all(userId);
-        return docs.map(doc => ({ ...doc, data: JSON.parse(doc.data) }));
+    async findAllByUserId(userId) {
+        const sql = 'SELECT * FROM documents WHERE user_id = $1 ORDER BY created_at DESC';
+        const res = await db.query(sql, [userId]);
+        return res.rows.map(row => ({
+            ...row,
+            data: typeof row.data === 'string' ? JSON.parse(row.data) : row.data
+        }));
     },
 
-    findById: (id, userId) => {
-        const stmt = db.prepare('SELECT * FROM documents WHERE id = ? AND user_id = ?');
-        const doc = stmt.get(id, userId);
-        if (doc) {
-            doc.data = JSON.parse(doc.data);
-        }
-        return doc;
-    },
-
-    update: (id, userId, data, updatedAt) => {
-        const stmt = db.prepare(`
-            UPDATE documents 
-            SET data = ?, updated_at = ? 
-            WHERE id = ? AND user_id = ?
-        `);
-        return stmt.run(JSON.stringify(data), updatedAt, id, userId);
-    },
-
-    delete: (id, userId) => {
-        const stmt = db.prepare('DELETE FROM documents WHERE id = ? AND user_id = ?');
-        return stmt.run(id, userId);
+    async delete(id, userId) {
+        const sql = 'DELETE FROM documents WHERE id = $1 AND user_id = $2';
+        const res = await db.query(sql, [id, userId]);
+        return res.rowCount > 0;
     }
 };
 

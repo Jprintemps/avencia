@@ -4,108 +4,60 @@ const { hashPassword, comparePassword } = require('../utils/hash');
 const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require('../utils/jwt');
 const { validateEmail, validatePassword } = require('../utils/validate');
 
+const sendJSON = (res, status, data) => {
+    if (res.status) { // Express / Vercel style
+        return res.status(status).json(data);
+    }
+    // Native Node style
+    res.writeHead(status, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(data));
+};
+
 const authController = {
     register: async (req, res) => {
         const { email, password, name } = req.body;
 
         if (!validateEmail(email) || !validatePassword(password)) {
-            res.writeHead(400, { 'Content-Type': 'application/json' });
-            return res.end(JSON.stringify({ success: false, error: 'Email ou mot de passe invalide (min 8 caractères)' }));
+            return sendJSON(res, 400, { success: false, error: 'Email ou mot de passe invalide (min 8 caractères)' });
         }
 
-        const existingUser = UserModel.findByEmail(email);
+        const existingUser = await UserModel.findByEmail(email);
         if (existingUser) {
-            res.writeHead(409, { 'Content-Type': 'application/json' });
-            return res.end(JSON.stringify({ success: false, error: 'Cet email est déjà utilisé' }));
+            return sendJSON(res, 409, { success: false, error: 'Cet email est déjà utilisé' });
         }
 
-        const userId = crypto.randomUUID();
         const passwordHash = await hashPassword(password);
-        
-        UserModel.create({
-            id: userId,
+        const user = await UserModel.create({
             email,
             password_hash: passwordHash,
-            name,
-            created_at: Date.now()
+            name
         });
 
-        const accessToken = generateAccessToken(userId);
-        const refreshToken = generateRefreshToken(userId);
-        UserModel.updateRefreshToken(userId, refreshToken);
+        const accessToken = generateAccessToken(user.id);
+        const refreshToken = generateRefreshToken(user.id);
 
         res.setHeader('Set-Cookie', `refreshToken=${refreshToken}; HttpOnly; Path=/; Max-Age=${7 * 24 * 60 * 60}; SameSite=Strict`);
-        res.writeHead(201, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, data: { accessToken, user: { id: userId, email, name } } }));
+        return sendJSON(res, 201, { success: true, data: { accessToken, user: { id: user.id, email: user.email, name: user.name } } });
     },
 
     login: async (req, res) => {
         const { email, password } = req.body;
 
-        const user = UserModel.findByEmail(email);
-        if (!user || !(await comparePassword(password, user.password_hash))) {
-            res.writeHead(401, { 'Content-Type': 'application/json' });
-            return res.end(JSON.stringify({ success: false, error: 'Identifiants incorrects' }));
+        const user = await UserModel.findByEmail(email);
+        if (!user || !(await comparePassword(password, user.password))) {
+            return sendJSON(res, 401, { success: false, error: 'Identifiants incorrects' });
         }
 
         const accessToken = generateAccessToken(user.id);
         const refreshToken = generateRefreshToken(user.id);
-        UserModel.updateRefreshToken(user.id, refreshToken);
 
         res.setHeader('Set-Cookie', `refreshToken=${refreshToken}; HttpOnly; Path=/; Max-Age=${7 * 24 * 60 * 60}; SameSite=Strict`);
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, data: { accessToken, user: { id: user.id, email: user.email, name: user.name } } }));
-    },
-
-    refresh: async (req, res) => {
-        const cookies = req.headers.cookie;
-        if (!cookies) {
-            res.writeHead(401, { 'Content-Type': 'application/json' });
-            return res.end(JSON.stringify({ success: false, error: 'Refresh token manquant' }));
-        }
-
-        const refreshToken = cookies.split(';').find(c => c.trim().startsWith('refreshToken='))?.split('=')[1];
-        if (!refreshToken) {
-            res.writeHead(401, { 'Content-Type': 'application/json' });
-            return res.end(JSON.stringify({ success: false, error: 'Refresh token manquant' }));
-        }
-
-        const decoded = verifyRefreshToken(refreshToken);
-        if (!decoded) {
-            res.writeHead(401, { 'Content-Type': 'application/json' });
-            return res.end(JSON.stringify({ success: false, error: 'Refresh token invalide' }));
-        }
-
-        const user = UserModel.findByRefreshToken(refreshToken);
-        if (!user) {
-            res.writeHead(401, { 'Content-Type': 'application/json' });
-            return res.end(JSON.stringify({ success: false, error: 'Session expirée' }));
-        }
-
-        const newAccessToken = generateAccessToken(user.id);
-        const newRefreshToken = generateRefreshToken(user.id);
-        UserModel.updateRefreshToken(user.id, newRefreshToken);
-
-        res.setHeader('Set-Cookie', `refreshToken=${newRefreshToken}; HttpOnly; Path=/; Max-Age=${7 * 24 * 60 * 60}; SameSite=Strict`);
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, data: { accessToken: newAccessToken } }));
+        return sendJSON(res, 200, { success: true, data: { accessToken, user: { id: user.id, email: user.email, name: user.name } } });
     },
 
     logout: async (req, res) => {
-        const cookies = req.headers.cookie;
-        if (cookies) {
-            const refreshToken = cookies.split(';').find(c => c.trim().startsWith('refreshToken='))?.split('=')[1];
-            if (refreshToken) {
-                const user = UserModel.findByRefreshToken(refreshToken);
-                if (user) {
-                    UserModel.updateRefreshToken(user.id, null);
-                }
-            }
-        }
-
         res.setHeader('Set-Cookie', 'refreshToken=; HttpOnly; Path=/; Max-Age=0; SameSite=Strict');
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true }));
+        return sendJSON(res, 200, { success: true });
     }
 };
 
