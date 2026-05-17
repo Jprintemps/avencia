@@ -118,6 +118,24 @@
         </div>
     </div>
 
+    <!-- MODALE CUSTOM (REMPLACE LES ALERT/CONFIRM NATIVES) -->
+    <div id="custom-modal" class="fixed inset-0 bg-slate-900/40 z-[300] hidden items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-200">
+        <div class="bg-white rounded-3xl shadow-2xl p-6 md:p-8 w-[90%] max-w-sm transform scale-95 transition-transform duration-200" id="custom-modal-content">
+            <div class="flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-blue-50 text-[#0a1b4f] rounded-full flex items-center justify-center mb-5 shadow-inner">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+                </div>
+                <h3 class="font-black text-xl text-slate-800 mb-2" id="modal-title">Confirmation</h3>
+                <p class="text-slate-500 text-sm mb-8" id="modal-message">Êtes-vous sûr de vouloir faire cela ?</p>
+                
+                <div class="flex gap-3 w-full" id="modal-buttons">
+                    <button id="modal-btn-no" class="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors active:scale-95">Annuler</button>
+                    <button id="modal-btn-yes" class="flex-1 py-3 bg-[#0a1b4f] text-white rounded-xl font-bold hover:bg-[#071336] shadow-md transition-colors active:scale-95">Confirmer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- TOAST NOTIFICATION -->
     <div id="toast" class="fixed bottom-24 md:bottom-6 right-4 md:right-6 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 z-[100] toast-hidden" style="background-color: #16a34a;">
         <i data-lucide="check-circle" class="w-5 h-5"></i>
@@ -791,28 +809,38 @@
         }
 
         function showConfirm(message, onYes) {
-            const modal = document.getElementById('confirm-modal');
-            const msgEl = document.getElementById('confirm-msg');
-            const yesBtn = document.getElementById('confirm-yes');
-            const noBtn = document.getElementById('confirm-no');
-            if(!modal || !msgEl || !yesBtn || !noBtn) {
-                // Fallback to native confirm if modal missing
-                if (window.confirm(message)) onYes();
-                return;
-            }
-            msgEl.innerText = message;
-            modal.classList.remove('hidden');
+            const modal = document.getElementById('custom-modal');
+            const content = document.getElementById('custom-modal-content');
+            const msgEl = document.getElementById('modal-message');
+            const yesBtn = document.getElementById('modal-btn-yes');
+            const noBtn = document.getElementById('modal-btn-no');
 
-            const cleanup = () => {
-                modal.classList.add('hidden');
-                yesBtn.onclick = null;
-                noBtn.onclick = null;
+            if(!modal) return;
+
+            msgEl.innerText = message;
+
+            // Afficher avec animation
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Forcer un repaint pour activer la transition
+            void modal.offsetWidth; 
+            modal.classList.remove('opacity-0');
+            content.classList.remove('scale-95');
+
+            const closeModal = () => {
+                modal.classList.add('opacity-0');
+                content.classList.add('scale-95');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }, 200);
             };
 
             yesBtn.onclick = () => {
-                try { onYes(); } finally { cleanup(); }
+                try { onYes(); } finally { closeModal(); }
             };
-            noBtn.onclick = () => { cleanup(); };
+            noBtn.onclick = closeModal;
         }
 
         function saveToHistory(doc) {
