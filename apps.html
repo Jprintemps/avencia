@@ -11,12 +11,6 @@
     <!-- Scripts Auth & DB -->
     <script src="frontend/db/localDB.js"></script>
     <script src="frontend/auth/authClient.js"></script>
-    <script>
-        // Protection de la page : Rediriger vers login.html si non connecté
-        if (!localStorage.getItem('user')) {
-            window.location.href = 'login.html';
-        }
-    </script>
 
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -346,7 +340,6 @@
             <div id="view-editor" class="hidden flex-1 flex flex-col lg:flex-row gap-4 lg:gap-8 p-4 lg:p-8 pb-24 lg:pb-8 overflow-y-auto lg:overflow-hidden h-full relative">
                 
                 <!-- BOUTON SAUVEGARDE FLOTTANT (MOBILE UNIQUEMENT, VISIBLE EN MODE APERÇU ET EDITION) -->
-                <!-- Ce bouton a été repensé pour être grand et parfaitement visible -->
                 <button onclick="generatePDF()" id="fab-save" class="md:hidden fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-[#0a1b4f] text-white px-8 py-3.5 rounded-full shadow-[0_10px_30px_rgba(10,27,79,0.4)] flex items-center justify-center gap-3 z-[60] active:scale-95 transition-all w-[85%] max-w-sm hidden">
                     <i data-lucide="file-down" class="w-6 h-6 generate-icon"></i>
                     <i data-lucide="loader-2" class="w-6 h-6 animate-spin hidden loading-icon"></i>
@@ -423,7 +416,7 @@
                             <div><label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Infos Bancaires</label><textarea id="bank-info" class="input-field h-16"></textarea></div>
                             <div id="logo-section" class="relative mt-2">
                                 <label id="logo-upload-zone" for="logo-input" class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50">
-                                    <i data-lucide="image-plus" class="w-5 h-5 text-slate-300 mb-1"></i><p class="text-[10px] text-slate-400 mt-1">Changer le logo</p>
+                                    <i data-lucide="image-plus" class="w-5 h-5 text-slate-300 mb-1"></i><p class="text-[10px] text-slate-400 mt-1">Ajouter ou changer de logo</p>
                                     <input type="file" id="logo-input" class="hidden" accept="image/*" />
                                 </label>
                                 <div id="logo-preview-area" class="hidden absolute inset-0 bg-white border-2 border-slate-100 rounded-xl flex items-center justify-between p-3 z-10">
@@ -497,6 +490,7 @@
         let currentUser = JSON.parse(localStorage.getItem('avencia_user')) || null;
         let appHistory = JSON.parse(localStorage.getItem('avencia_docs')) || [];
 
+        // Notez que logo est STRICTEMENT null par défaut
         let state = {
             docType: 'quote', selectedTemplate: 'modern', logo: null, primaryColor: '#0a1b4f',
             isGenerating: false,
@@ -665,18 +659,20 @@
             }
         }
 
-
         // --- RESTE DU SCRIPT SÉCURISÉ ---
         function initAuth() {
-            const user = JSON.parse(localStorage.getItem('user'));
+            const user = JSON.parse(localStorage.getItem('avencia_user')) || JSON.parse(localStorage.getItem('user'));
             const appWrapper = document.getElementById('app-wrapper');
+            const authScreen = document.getElementById('auth-screen');
 
             if (!user) {
-                window.location.href = 'login.html';
+                if (authScreen) authScreen.classList.remove('hidden');
+                if (appWrapper) appWrapper.classList.add('hidden');
                 return;
             }
 
-            if(appWrapper) appWrapper.classList.remove('hidden');
+            if (authScreen) authScreen.classList.add('hidden');
+            if (appWrapper) appWrapper.classList.remove('hidden');
             
             const sbCompany = document.getElementById('sidebar-company');
             const sbAvatar = document.getElementById('sidebar-avatar');
@@ -728,9 +724,10 @@
                     await authClient.logout();
                 } else {
                     localStorage.removeItem('user');
+                    localStorage.removeItem('avencia_user');
                 }
-                // Redirect to public homepage
-                window.location.href = 'index.html';
+                // Afficher l'écran de connexion au lieu de recharger la page
+                initAuth();
             });
         }
 
@@ -745,6 +742,9 @@
                 state.primaryColor = user.color || "#0a1b4f";
                 state.vatRate = user.vatRate || 0;
                 state.bankInfo = user.bankInfo || "";
+                
+                // IMPORTANT : On s'assure qu'aucun logo n'est chargé du localStorage
+                state.logo = null;
 
                 const ids = ['prov-name','prov-email','prov-address','prov-phone','prov-id','primaryColor','vat-rate','bank-info'];
                 ids.forEach(id => {
@@ -842,7 +842,7 @@
         function sendReminder(email, number) {
             const subject = encodeURIComponent(`Relance : Facture ${number}`);
             const body = encodeURIComponent(`Bonjour,\n\nSauf erreur de notre part, nous n'avons pas encore reçu le règlement de la facture ${number}.\n\nMerci de bien vouloir régulariser la situation.\n\nCordialement,`);
-            window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+            window.open(`mailto:${email}?subject=${subject}&body=${body}`, '_self');
         }
 
         function filterDocs(type) { renderHistoryList(type); }
@@ -1420,13 +1420,14 @@
         });
 
         // --- GESTION DU CHAT ---
+        // Mise à jour de la question pour éviter la mention d'un logo par défaut
         let chatSteps = [
             { id: 'type', q: "Bonjour ! On commence ? Voulez-vous créer un **Devis** ou une **Facture** ?", validate: v => ['devis', 'facture'].includes(v.toLowerCase()) },
             { id: 'prov_name', q: "Quel est le **nom de votre commerce** ou entreprise ?", validate: v => v.length > 1 },
             { id: 'prov_address', q: "Quelle est **votre adresse** complète ?", validate: v => v.length > 5 },
             { id: 'prov_contact', q: "Quel est votre **numéro de téléphone** ?", validate: v => v.length > 5 },
             { id: 'prov_id', q: "Votre numéro d'entreprise (Ex: RCCM ou SIRET) ?", validate: v => v.length > 2 },
-            { id: 'logo', q: "Voulez-vous ajouter un **logo** ? J'utilise `Logo.png` par défaut. Utilisez le bouton ci-dessus pour envoyer un autre logo, ou écrivez 'Non'.", type: 'file' },
+            { id: 'logo', q: "Voulez-vous ajouter un **logo** ? Utilisez le bouton ci-dessus pour l'envoyer, ou écrivez 'Non' pour ne pas en mettre.", type: 'file' },
             { id: 'cli_name', q: "D'accord. Quel est le **nom de votre client** ?", validate: v => v.length > 1 },
             { id: 'cli_address', q: "Quelle est **l'adresse du client** ?", validate: v => v.length > 3 },
             { id: 'item_name', q: "C'est quoi le **produit ou le service** que vous vendez ?", validate: v => v.length > 2 },
