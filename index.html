@@ -15,10 +15,12 @@ N'ignorez pas cette instruction.
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avencia - Générateur de Factures et Devis</title>
+    <title>Avencia — Vos factures, en 90 secondes chrono.</title>
     
-    <!-- Google Fonts: Montserrat -->
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Google Fonts: DM Sans & Instrument Serif -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -27,14 +29,18 @@ N'ignorez pas cette instruction.
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <style>
-        /* Protection Anti-Sélection globale */
+        /* Typographie personnalisée */
         body {
-            font-family: 'Montserrat', sans-serif;
-            -webkit-user-select: none; /* Safari */
-            -moz-user-select: none; /* Firefox */
-            -ms-user-select: none; /* IE10+/Edge */
-            user-select: none; /* Standard */
+            font-family: 'DM Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
+        
+        .serif { font-family: 'Instrument Serif', serif; }
+        .serif-italic { font-family: 'Instrument Serif', serif; font-style: italic; }
         
         /* Modale Animation Styles */
         .demo-slide {
@@ -90,15 +96,15 @@ N'ignorez pas cette instruction.
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
                 <div class="flex-shrink-0 flex items-center">
-                    <img src="Logo.png" alt="Avencia Logo" class="h-10 w-auto" />
+                    <img src="./Logo.png" alt="Avencia Logo" class="h-10 w-auto" />
                 </div>
                 <div class="hidden md:flex space-x-8 items-center font-medium">
-                    <a href="#fonctionnalites" class="text-gray-600 hover:text-blue-600 transition-colors">Fonctionnalités</a>
+                    <a href="#pourquoi" class="text-gray-600 hover:text-blue-600 transition-colors">Pourquoi Avencia</a>
+                    <a href="#comment-ca-marche" class="text-gray-600 hover:text-blue-600 transition-colors">Comment ça marche</a>
                     <a href="#tarifs" class="text-gray-600 hover:text-blue-600 transition-colors">Tarifs</a>
-                    <a href="#faq" class="text-gray-600 hover:text-blue-600 transition-colors">FAQ</a>
                     <a href="./apps.html" class="text-gray-900 hover:text-blue-600 transition-colors">Connexion</a>
                     <button onclick="window.location.href='./apps.html'" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-md shadow-blue-200">
-                        Essai Gratuit
+                        Créer ma première facture
                     </button>
                 </div>
                 <div class="md:hidden flex items-center">
@@ -113,10 +119,11 @@ N'ignorez pas cette instruction.
         <!-- Mobile menu -->
         <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-gray-100 p-4 absolute w-full shadow-lg">
             <div class="flex flex-col space-y-4">
-                <a href="#fonctionnalites" class="text-gray-600 font-medium mobile-link">Fonctionnalités</a>
+                <a href="#pourquoi" class="text-gray-600 font-medium mobile-link">Pourquoi Avencia</a>
+                <a href="#comment-ca-marche" class="text-gray-600 font-medium mobile-link">Comment ça marche</a>
                 <a href="#tarifs" class="text-gray-600 font-medium mobile-link">Tarifs</a>
                 <button onclick="window.location.href='./apps.html'" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold w-full">
-                    Essai Gratuit
+                    Créer ma première facture
                 </button>
             </div>
         </div>
@@ -132,28 +139,31 @@ N'ignorez pas cette instruction.
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="grid lg:grid-cols-2 gap-12 items-center">
                 <div class="text-center lg:text-left">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-semibold mb-6 border border-blue-100">
-                        <span class="flex h-2 w-2 rounded-full bg-blue-600"></span>
-                        L'outil indispensable des indépendants
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 text-blue-700 text-sm font-semibold mb-6 border border-blue-100 shadow-sm">
+                        <span class="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
+                        12 834 indépendants ont généré une facture ce mois-ci
                     </div>
-                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-tight mb-6 tracking-tight">
-                        Créez vos factures et devis <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">en 3 clics.</span>
+                    <h1 class="serif text-5xl md:text-6xl lg:text-7xl font-normal text-slate-900 leading-[1.05] mb-6 tracking-tight">
+                        Votre client attend <br class="hidden md:block" />
+                        <span class="serif-italic text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">sa facture.</span>
                     </h1>
-                    <p class="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                        Avencia est un générateur simple et rapide. Fini les fichiers Excel cassés et les erreurs de calcul : éditez vos documents et exportez-les en PDF instantanément.
+                    <p class="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-light">
+                        Pas votre tableur Excel. Pas votre modèle Word qui déraille. Avencia génère des PDF professionnels en 90 secondes — calculs inclus, mentions légales comprises.
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                        <button onclick="window.location.href='./apps.html'" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all transform hover:-translate-y-1 shadow-xl shadow-blue-200 flex items-center justify-center gap-2 group">
-                            Démarrer l'essai gratuit
+                        <button onclick="window.location.href='./apps.html'" class="bg-slate-900 hover:bg-slate-800 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all transform hover:-translate-y-1 shadow-xl shadow-slate-200 flex items-center justify-center gap-2 group">
+                            Créer ma première facture — Gratuit
                             <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
                         </button>
                         <button onclick="openDemoModal()" class="bg-white hover:bg-gray-50 text-slate-700 border border-gray-200 px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 hover:shadow-md">
                             <i data-lucide="play-circle" class="w-5 h-5 text-gray-400"></i>
-                            Voir comment ça marche
+                            Voir en 60 secondes
                         </button>
                     </div>
-                    <p class="mt-4 text-sm text-gray-500 flex items-center justify-center lg:justify-start gap-1">
-                        <i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> 14 jours gratuits. Sans carte bancaire.
+                    <p class="mt-5 text-sm text-gray-500 flex flex-wrap items-center justify-center lg:justify-start gap-4 font-medium">
+                        <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> 14 jours gratuits</span>
+                        <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> Sans carte bancaire</span>
+                        <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> Annulable en 2 clics</span>
                     </p>
                 </div>
                 
@@ -161,7 +171,7 @@ N'ignorez pas cette instruction.
                     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gradient-to-tr from-blue-100 to-indigo-50 rounded-full blur-3xl opacity-40 -z-10"></div>
                     
                     <!-- Dashboard Mockup avec Iframe -->
-                    <div class="relative rounded-xl bg-white shadow-2xl border border-gray-100 overflow-hidden transform -rotate-1 hover:rotate-0 transition-transform duration-500">
+                    <div class="relative rounded-2xl bg-white shadow-2xl border border-gray-200 overflow-hidden transform -rotate-1 hover:rotate-0 transition-transform duration-500">
                         <div class="bg-slate-50 border-b border-gray-100 px-4 py-3 flex items-center gap-2">
                             <div class="flex gap-1.5">
                                 <div class="w-3 h-3 rounded-full bg-red-400"></div>
@@ -169,10 +179,10 @@ N'ignorez pas cette instruction.
                                 <div class="w-3 h-3 rounded-full bg-green-400"></div>
                             </div>
                             <div class="mx-auto bg-white px-4 py-1 rounded-md text-xs text-gray-400 border border-gray-200 shadow-sm flex items-center gap-2">
-                                <i data-lucide="shield" class="w-3 h-3"></i> app.avencia.com
+                                <i data-lucide="lock" class="w-3 h-3"></i> app.avencia.com/nouvelle-facture
                             </div>
                         </div>
-                        <div class="relative w-full h-80 sm:h-[450px] bg-slate-50 overflow-hidden">
+                        <div class="relative w-full h-80 sm:h-[450px] bg-[#FAFAF8] overflow-hidden">
                             <!-- Intégration en direct du SaaS agissant comme une image -->
                             <iframe 
                                 src="./demo.html" 
@@ -190,54 +200,84 @@ N'ignorez pas cette instruction.
     </section>
 
     <!-- SOCIAL PROOF -->
-    <section class="py-10 border-y border-gray-100 bg-white/50">
+    <section class="py-10 border-y border-gray-100 bg-slate-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <p class="text-sm font-semibold text-gray-400 tracking-wider uppercase mb-6">
-                Plus de 10 000 indépendants l'utilisent chaque jour
+            <p class="text-xs font-bold text-gray-400 tracking-[0.1em] uppercase mb-6">
+                Utilisé par des indépendants dans...
             </p>
-            <div class="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
-                <div class="text-xl font-black font-serif text-slate-800 flex items-center gap-1"><div class="w-6 h-6 bg-slate-800 rounded-sm transform rotate-45"></div> TechFlow</div>
-                <div class="text-xl font-bold text-slate-800 tracking-tighter">STUDIO<span class="text-blue-600">8</span></div>
-                <div class="text-xl font-extrabold text-slate-800 flex items-center gap-2"><div class="w-4 h-4 rounded-full border-4 border-slate-800"></div> OMEGA</div>
-                <div class="text-xl font-bold text-slate-800 italic">Vanguard</div>
-                <div class="text-xl font-medium text-slate-800 uppercase tracking-widest">Horizon</div>
+            <div class="flex flex-wrap justify-center items-center gap-6 md:gap-10 transition-all duration-500">
+                <span class="text-lg font-bold tracking-tight text-slate-800">le conseil</span>
+                <span class="text-lg font-bold tracking-tight text-slate-800">le design</span>
+                <span class="text-lg font-bold tracking-tight text-slate-800">le bâtiment</span>
+                <span class="text-lg font-bold tracking-tight text-slate-800">le dev</span>
+                <span class="text-lg font-bold tracking-tight text-slate-800">la traduction</span>
+                <span class="text-lg font-bold tracking-tight text-slate-800">la compta</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- STATS SECTION (Issue du nouveau copywrite) -->
+    <section class="bg-slate-900 py-16 border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-slate-800/50">
+                <div class="text-center px-4">
+                    <div class="serif text-4xl md:text-5xl text-white mb-2">280k+</div>
+                    <div class="text-sm text-slate-400 font-medium">factures générées</div>
+                </div>
+                <div class="text-center px-4">
+                    <div class="serif text-4xl md:text-5xl text-white mb-2">90s</div>
+                    <div class="text-sm text-slate-400 font-medium">de la saisie au PDF</div>
+                </div>
+                <div class="text-center px-4">
+                    <div class="serif text-4xl md:text-5xl text-white mb-2">0 CDF</div>
+                    <div class="text-sm text-slate-400 font-medium">d'erreur de calcul possible</div>
+                </div>
+                <div class="text-center px-4">
+                    <div class="serif text-4xl md:text-5xl text-white mb-2">4.9★</div>
+                    <div class="text-sm text-slate-400 font-medium">note moyenne utilisateurs</div>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- PROBLEM -->
-    <section class="py-24 bg-slate-900 text-white relative overflow-hidden">
+    <section id="pourquoi" class="py-24 bg-slate-900 text-white relative overflow-hidden">
         <div class="absolute top-0 right-0 w-96 h-96 bg-blue-900 rounded-full blur-[100px] opacity-30"></div>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="text-center max-w-3xl mx-auto mb-16">
-                <h2 class="text-3xl md:text-4xl font-bold mb-6">Faire un devis ne devrait pas être une corvée.</h2>
-                <p class="text-xl text-slate-300">Oubliez les logiciels complexes ou les modèles Word qui se décalent à chaque modification.</p>
+                <h3 class="text-slate-400 font-bold tracking-[0.1em] uppercase text-xs mb-6">La vraie raison pour laquelle vous procrastinez</h3>
+                <h2 class="serif text-4xl md:text-5xl lg:text-6xl font-normal mb-6 leading-tight">
+                    Faire une facture ne devrait pas vous <span class="serif-italic text-blue-400">ruiner la soirée.</span>
+                </h2>
+                <p class="text-lg text-slate-300 leading-relaxed font-light">
+                    Pourtant, des milliers d'indépendants repoussent encore l'envoi de leurs factures à "demain". Résultat : des paiements tardifs, du stress inutile, et des heures perdues sur des outils qui n'ont jamais été conçus pour ça.
+                </p>
             </div>
             
-            <div class="grid md:grid-cols-3 gap-8">
+            <div class="grid md:grid-cols-3 gap-6">
                 <!-- Problème 1 -->
-                <div class="bg-slate-800/50 border border-slate-700 p-8 rounded-2xl hover:bg-slate-800 transition-colors">
-                    <div class="bg-slate-900 w-16 h-16 rounded-xl flex items-center justify-center mb-6 shadow-inner">
-                        <i data-lucide="layout-template" class="w-8 h-8 text-red-400"></i>
+                <div class="bg-slate-800/50 border border-slate-700 p-8 rounded-2xl hover:border-slate-600 transition-colors">
+                    <div class="w-12 h-12 bg-slate-900 border border-slate-700 rounded-xl flex items-center justify-center mb-6">
+                        <i data-lucide="layout-template" class="w-6 h-6 text-red-400"></i>
                     </div>
-                    <h3 class="text-xl font-semibold mb-3">Mises en page cassées</h3>
-                    <p class="text-slate-400 leading-relaxed">Passer 20 minutes à essayer d'aligner un tableau sur Word ou Google Docs avant d'envoyer votre devis.</p>
+                    <h3 class="text-lg font-bold mb-4 leading-snug">"Mon modèle Word déraille à chaque modification."</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">Vous passez 15 minutes à réaligner un tableau. Votre PDF final ressemble à un brouillon de lycée. Ce n'est pas une bonne première impression.</p>
                 </div>
                 <!-- Problème 2 -->
-                <div class="bg-slate-800/50 border border-slate-700 p-8 rounded-2xl hover:bg-slate-800 transition-colors">
-                    <div class="bg-slate-900 w-16 h-16 rounded-xl flex items-center justify-center mb-6 shadow-inner">
-                        <i data-lucide="calculator" class="w-8 h-8 text-amber-400"></i>
+                <div class="bg-slate-800/50 border border-slate-700 p-8 rounded-2xl hover:border-slate-600 transition-colors">
+                    <div class="w-12 h-12 bg-slate-900 border border-slate-700 rounded-xl flex items-center justify-center mb-6">
+                        <i data-lucide="calculator" class="w-6 h-6 text-amber-400"></i>
                     </div>
-                    <h3 class="text-xl font-semibold mb-3">Erreurs de calcul</h3>
-                    <p class="text-slate-400 leading-relaxed">Une erreur de TVA sur Excel ou un total mal additionné vous fait perdre de l'argent et votre crédibilité.</p>
+                    <h3 class="text-lg font-bold mb-4 leading-snug">"J'ai facturé 1 900 CDF au lieu de 2 280 CDF. J'ai perdu 380 CDF."</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">Une formule TVA mal posée sur Excel, et vous sous-facturez sans le savoir. Les erreurs de calcul ne font pas de cadeaux — sauf à votre client.</p>
                 </div>
                 <!-- Problème 3 -->
-                <div class="bg-slate-800/50 border border-slate-700 p-8 rounded-2xl hover:bg-slate-800 transition-colors">
-                    <div class="bg-slate-900 w-16 h-16 rounded-xl flex items-center justify-center mb-6 shadow-inner">
-                        <i data-lucide="clock" class="w-8 h-8 text-orange-400"></i>
+                <div class="bg-slate-800/50 border border-slate-700 p-8 rounded-2xl hover:border-slate-600 transition-colors">
+                    <div class="w-12 h-12 bg-slate-900 border border-slate-700 rounded-xl flex items-center justify-center mb-6">
+                        <i data-lucide="search" class="w-6 h-6 text-purple-400"></i>
                     </div>
-                    <h3 class="text-xl font-semibold mb-3">Perte de temps</h3>
-                    <p class="text-slate-400 leading-relaxed">Rechercher une ancienne facture pour copier/coller les infos du client vous ralentit chaque jour.</p>
+                    <h3 class="text-lg font-bold mb-4 leading-snug">"Je dois retrouver la vieille facture du client pour copier ses infos…"</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">Et la voilà, ensevelie sous 200 fichiers nommés "facture_FINAL_v3_ok.docx". Chaque nouveau document est une mini-expédition archéologique.</p>
                 </div>
             </div>
         </div>
@@ -246,166 +286,115 @@ N'ignorez pas cette instruction.
     <!-- HOW IT WORKS -->
     <section class="py-24 bg-slate-50" id="comment-ca-marche">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center max-w-3xl mx-auto mb-16">
-                <h2 class="text-blue-600 font-semibold tracking-wide uppercase mb-2">Processus simple</h2>
-                <h3 class="text-3xl md:text-4xl font-bold text-slate-900 mb-6">Éditez, Calculez, Téléchargez.</h3>
-                <p class="text-lg text-gray-600">Avencia est conçu pour aller à l'essentiel. Obtenez votre PDF en quelques secondes.</p>
+            <div class="text-center max-w-3xl mx-auto mb-20">
+                <h3 class="text-slate-500 font-bold tracking-[0.1em] uppercase text-xs mb-6">De zéro à "Facture envoyée" en</h3>
+                <h2 class="serif text-5xl md:text-6xl font-normal text-slate-900 mb-6 leading-tight">
+                    90 secondes. <br class="hidden sm:block" />
+                    <span class="serif-italic text-blue-600">Chrono.</span>
+                </h2>
             </div>
 
             <div class="grid md:grid-cols-3 gap-8 relative">
-                <div class="hidden md:block absolute top-24 left-[15%] right-[15%] h-0.5 bg-gradient-to-r from-blue-100 via-blue-300 to-blue-100 z-0"></div>
+                <!-- Step 1 -->
+                <div class="relative z-10 bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
+                    <div class="serif text-6xl text-gray-200 absolute -top-6 -left-3 z-0 select-none">01</div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-6">
+                            <i data-lucide="user-plus" class="w-6 h-6"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-slate-900 mb-3">Ajoutez votre client</h4>
+                        <p class="text-gray-600 leading-relaxed text-sm">Tapez le nom, l'email s'auto-suggère depuis votre carnet. Zéro copier-coller.</p>
+                    </div>
+                </div>
                 
-                <div class="relative z-10 flex flex-col items-center text-center">
-                    <div class="w-16 h-16 rounded-full bg-white border-4 border-blue-50 text-blue-600 font-bold text-xl flex items-center justify-center mb-6 shadow-md">01</div>
-                    <h4 class="text-xl font-bold text-slate-900 mb-3">Renseignez</h4>
-                    <p class="text-gray-600 leading-relaxed px-4">Ajoutez les coordonnées de votre client et les détails de votre prestation.</p>
-                </div>
-                
-                <div class="relative z-10 flex flex-col items-center text-center">
-                    <div class="w-16 h-16 rounded-full bg-white border-4 border-blue-50 text-blue-600 font-bold text-xl flex items-center justify-center mb-6 shadow-md">02</div>
-                    <h4 class="text-xl font-bold text-slate-900 mb-3">Vérifiez</h4>
-                    <p class="text-gray-600 leading-relaxed px-4">L'outil gère la numérotation, additionne vos lignes et applique la TVA choisie.</p>
-                </div>
-
-                <div class="relative z-10 flex flex-col items-center text-center">
-                    <div class="w-16 h-16 rounded-full bg-white border-4 border-blue-50 text-blue-600 font-bold text-xl flex items-center justify-center mb-6 shadow-md">03</div>
-                    <h4 class="text-xl font-bold text-slate-900 mb-3">Exportez</h4>
-                    <p class="text-gray-600 leading-relaxed px-4">Générez un PDF professionnel propre, sécurisé et prêt à être envoyé par email.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- FEATURES -->
-    <section class="py-24 bg-white" id="fonctionnalites">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            
-            <!-- Feature 1 -->
-            <div class="flex flex-col md:flex-row items-center gap-12 lg:gap-20 mb-24">
-                <div class="flex-1 order-2 md:order-1">
-                    <div class="bg-slate-50 rounded-2xl p-8 border border-gray-100 shadow-lg shadow-gray-200/50 relative overflow-hidden">
-                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-100 rounded-full blur-2xl opacity-60"></div>
-                        <div class="flex items-center gap-4 mb-6 border-b border-gray-200 pb-4">
-                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center"><i data-lucide="file-check-2" class="w-5 h-5 text-blue-600"></i></div>
-                            <div>
-                                <div class="h-3 w-32 bg-slate-800 rounded mb-2"></div>
-                                <div class="h-2 w-24 bg-gray-400 rounded"></div>
-                            </div>
+                <!-- Step 2 -->
+                <div class="relative z-10 bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
+                    <div class="serif text-6xl text-gray-200 absolute -top-6 -left-3 z-0 select-none">02</div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-6">
+                            <i data-lucide="list-plus" class="w-6 h-6"></i>
                         </div>
-                        <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm flex items-center justify-between">
-                           <div class="flex items-center gap-3">
-                             <i data-lucide="file-text" class="text-gray-400 w-8 h-8"></i>
-                             <div>
-                               <div class="text-sm font-bold text-slate-700">Facture_F-2026-04.pdf</div>
-                               <div class="text-xs text-gray-500">Document généré avec succès</div>
-                             </div>
-                           </div>
-                           <button class="bg-blue-50 text-blue-600 p-2 rounded hover:bg-blue-100"><i data-lucide="download" class="w-5 h-5"></i></button>
-                        </div>
+                        <h4 class="text-xl font-bold text-slate-900 mb-3">Décrivez vos lignes</h4>
+                        <p class="text-gray-600 leading-relaxed text-sm">Prestation, quantité, prix. La TVA se calcule seule. Vous ne pouvez pas vous tromper.</p>
                     </div>
                 </div>
-                <div class="flex-1 order-1 md:order-2">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-semibold mb-4">
-                        <i data-lucide="layout-template" class="w-4 h-4"></i> Design & Rendu
+
+                <!-- Step 3 -->
+                <div class="relative z-10 bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
+                    <div class="serif text-6xl text-gray-200 absolute -top-6 -left-3 z-0 select-none">03</div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-6">
+                            <i data-lucide="send" class="w-6 h-6"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-slate-900 mb-3">Téléchargez, envoyez</h4>
+                        <p class="text-gray-600 leading-relaxed text-sm">Un PDF propre, au nom de votre entreprise, avec toutes les mentions légales. Prêt à partir.</p>
                     </div>
-                    <h2 class="text-3xl font-bold text-slate-900 mb-6">Des documents professionnels instantanément.</h2>
-                    <p class="text-lg text-gray-600 mb-6">
-                        Votre image de marque est importante. Avencia crée des factures épurées, élégantes et parfaitement lisibles pour vos clients.
-                    </p>
-                    <ul class="space-y-3">
-                        <li class="flex items-center gap-3 text-gray-700 font-medium"><i data-lucide="check-circle-2" class="w-5 h-5 text-blue-500"></i> Mise en page toujours parfaite, aucun décalage</li>
-                        <li class="flex items-center gap-3 text-gray-700 font-medium"><i data-lucide="check-circle-2" class="w-5 h-5 text-blue-500"></i> Export PDF HD</li>
-                        <li class="flex items-center gap-3 text-gray-700 font-medium"><i data-lucide="check-circle-2" class="w-5 h-5 text-blue-500"></i> Inclusion de votre logo et couleurs</li>
-                    </ul>
                 </div>
             </div>
 
-            <!-- Feature 2 -->
-            <div class="flex flex-col md:flex-row items-center gap-12 lg:gap-20">
+            <!-- Bonus Pro Section -->
+            <div class="mt-12 bg-blue-50 border-2 border-blue-100 rounded-2xl p-8 md:p-10 flex flex-col md:flex-row items-center gap-8 shadow-sm">
                 <div class="flex-1">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-sm font-semibold mb-4">
-                        <i data-lucide="calculator" class="w-4 h-4"></i> Précision absolue
-                    </div>
-                    <h2 class="text-3xl font-bold text-slate-900 mb-6">Fini les erreurs de calcul mathématique.</h2>
-                    <p class="text-lg text-gray-600 mb-6">
-                        Renseignez votre prix unitaire et votre quantité, l'outil s'occupe du reste. La gestion de la TVA n'a jamais été aussi simple.
+                    <div class="text-blue-600 font-bold tracking-[0.1em] uppercase text-xs mb-3">Bonus Pro — La conversion magique</div>
+                    <p class="text-lg font-medium text-slate-900 leading-relaxed">
+                        Votre devis est accepté ? Transformez-le en facture en un clic. Zéro ressaisie. Numérotation automatique.
                     </p>
-                    <ul class="space-y-3">
-                        <li class="flex items-center gap-3 text-gray-700 font-medium"><i data-lucide="check-circle-2" class="w-5 h-5 text-indigo-500"></i> Calculs automatiques (HT, TVA, TTC)</li>
-                        <li class="flex items-center gap-3 text-gray-700 font-medium"><i data-lucide="check-circle-2" class="w-5 h-5 text-indigo-500"></i> Transformez un devis en facture en 1 clic</li>
-                        <li class="flex items-center gap-3 text-gray-700 font-medium"><i data-lucide="check-circle-2" class="w-5 h-5 text-indigo-500"></i> Mentions légales obligatoires intégrées</li>
-                    </ul>
                 </div>
-                <div class="flex-1">
-                    <div class="bg-slate-900 rounded-2xl p-8 border border-slate-800 shadow-xl relative overflow-hidden">
-                        <div class="absolute -left-4 -bottom-4 w-32 h-32 bg-indigo-600 rounded-full blur-3xl opacity-40"></div>
-                        
-                        <div class="space-y-4 relative z-10">
-                            <div class="bg-slate-800 rounded-lg p-4 border border-slate-700 text-white">
-                               <div class="flex justify-between text-sm mb-2 text-gray-400"><span>Sous-total HT</span><span>1 500,00 $</span></div>
-                               <div class="flex justify-between text-sm mb-4 text-gray-400"><span>TVA (20%)</span><span>300,00 $</span></div>
-                               <div class="flex justify-between font-bold text-lg border-t border-slate-600 pt-2 text-indigo-300"><span>TOTAL TTC</span><span>1 800,00 $</span></div>
-                            </div>
-                            <div class="flex gap-2">
-                               <div class="flex-1 bg-slate-800 p-3 rounded text-center text-xs text-gray-400 border border-slate-700 uppercase tracking-widest">Devis Validé</div>
-                               <div class="flex-1 bg-indigo-600 p-3 rounded text-center text-xs text-white font-bold border border-indigo-500 cursor-pointer hover:bg-indigo-500 transition-colors">Créer Facture</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <a href="./apps.html" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-xl font-bold transition-all shadow-md flex-shrink-0 text-center w-full md:w-auto">
+                    Essayer maintenant &rarr;
+                </a>
             </div>
-
         </div>
     </section>
 
     <!-- TESTIMONIALS -->
-    <section class="py-24 bg-slate-50 border-y border-gray-100">
+    <section class="py-24 bg-white border-y border-gray-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center max-w-3xl mx-auto mb-16">
-                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-6">Simple, basique, efficace.</h2>
-                <p class="text-lg text-gray-600">L'avis des indépendants qui ont arrêté de se compliquer la vie.</p>
+                <h3 class="text-slate-500 font-bold tracking-[0.1em] uppercase text-xs mb-6">Ce qu'ils ont arrêté de subir</h3>
+                <h2 class="serif text-4xl md:text-5xl lg:text-6xl font-normal text-slate-900 mb-6">La vie après Excel.</h2>
             </div>
 
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <!-- Avis 1 -->
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                    <div class="flex gap-1 mb-4 text-amber-400">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg transition-shadow">
+                    <div class="flex gap-1 mb-6 text-amber-400">
                         <i data-lucide="star" class="w-5 h-5 fill-amber-400"></i><i data-lucide="star" class="w-5 h-5 fill-amber-400"></i><i data-lucide="star" class="w-5 h-5 fill-amber-400"></i><i data-lucide="star" class="w-5 h-5 fill-amber-400"></i><i data-lucide="star" class="w-5 h-5 fill-amber-400"></i>
                     </div>
-                    <p class="text-gray-700 italic mb-6 leading-relaxed">"Je n'avais besoin que d'un outil pour faire de jolis PDF rapidement sans fioritures. Avencia fait ça parfaitement. Gain de temps incroyable."</p>
+                    <p class="text-gray-700 mb-8 leading-relaxed text-sm">"Mon ancien fichier Excel avait une formule TVA cassée depuis 6 mois sans que je le sache. J'ai <strong>récupéré 870 CDF de sous-facturation</strong> dès le mois où j'ai basculé sur Avencia."</p>
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center font-bold text-blue-800 text-lg">S</div>
+                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center font-bold text-blue-800 text-lg">S</div>
                         <div>
-                            <p class="font-bold text-slate-900">Sophie Laurent</p>
-                            <p class="text-sm text-gray-500">Designer Freelance</p>
+                            <p class="font-bold text-slate-900 text-sm">Sophie Laurent</p>
+                            <p class="text-xs text-gray-500">Designer UX Freelance · Paris</p>
                         </div>
                     </div>
                 </div>
                 <!-- Avis 2 -->
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                    <div class="flex gap-1 mb-4 text-amber-400">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg transition-shadow">
+                    <div class="flex gap-1 mb-6 text-amber-400">
                         <i data-lucide="star" class="w-5 h-5 fill-amber-400"></i><i data-lucide="star" class="w-5 h-5 fill-amber-400"></i><i data-lucide="star" class="w-5 h-5 fill-amber-400"></i><i data-lucide="star" class="w-5 h-5 fill-amber-400"></i><i data-lucide="star" class="w-5 h-5 fill-amber-400"></i>
                     </div>
-                    <p class="text-gray-700 italic mb-6 leading-relaxed">"Avant je faisais tout sur un vieux fichier Excel. Les calculs de TVA sautaient tout le temps. Maintenant je fais mes devis depuis mon canapé en 2 minutes."</p>
+                    <p class="text-gray-700 mb-8 leading-relaxed text-sm">"En tant que plombier, je faisais mes devis à la main sur papier. Mes clients me demandaient souvent de renvoyer le document. Maintenant <strong>j'envoie un PDF depuis mon téléphone avant même de quitter le chantier</strong>."</p>
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center font-bold text-blue-800 text-lg">M</div>
+                        <div class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center font-bold text-amber-800 text-lg">K</div>
                         <div>
-                            <p class="font-bold text-slate-900">Marc Dubois</p>
-                            <p class="text-sm text-gray-500">Artisan</p>
+                            <p class="font-bold text-slate-900 text-sm">Karim Mansour</p>
+                            <p class="text-xs text-gray-500">Artisan plombier · Lyon</p>
                         </div>
                     </div>
                 </div>
                 <!-- Avis 3 -->
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                    <div class="flex gap-1 mb-4 text-amber-400">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg transition-shadow">
+                    <div class="flex gap-1 mb-6 text-amber-400">
                         <i data-lucide="star" class="w-5 h-5 fill-amber-400"></i><i data-lucide="star" class="w-5 h-5 fill-amber-400"></i><i data-lucide="star" class="w-5 h-5 fill-amber-400"></i><i data-lucide="star" class="w-5 h-5 fill-amber-400"></i><i data-lucide="star" class="w-5 h-5 fill-amber-400"></i>
                     </div>
-                    <p class="text-gray-700 italic mb-6 leading-relaxed">"Interface hyper claire, pas besoin de notice. Je convertis mes devis acceptés en factures en un seul clic. C'est exactement ce qu'il me fallait."</p>
+                    <p class="text-gray-700 mb-8 leading-relaxed text-sm">"Ce que j'adore : je crée un devis, le client valide, je clique 'Convertir en facture'. Le numéro s'incrémente seul, la date se met à jour. <strong>Mes clients pensent que j'ai un service comptabilité dédié.</strong>"</p>
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center font-bold text-blue-800 text-lg">J</div>
+                        <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center font-bold text-emerald-800 text-lg">J</div>
                         <div>
-                            <p class="font-bold text-slate-900">Julie Martin</p>
-                            <p class="text-sm text-gray-500">Consultante SEO</p>
+                            <p class="font-bold text-slate-900 text-sm">Julie Martin</p>
+                            <p class="text-xs text-gray-500">Consultante SEO · Bordeaux</p>
                         </div>
                     </div>
                 </div>
@@ -414,71 +403,79 @@ N'ignorez pas cette instruction.
     </section>
 
     <!-- PRICING SECTION -->
-    <section class="py-24 bg-white" id="tarifs">
+    <section class="py-24 bg-slate-50" id="tarifs">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center max-w-3xl mx-auto mb-16">
-                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-6">Des tarifs adaptés aux indépendants</h2>
-                <p class="text-lg text-gray-600">Allez à l'essentiel, ne payez pas pour ce dont vous n'avez pas besoin.</p>
+                <h3 class="text-slate-500 font-bold tracking-[0.1em] uppercase text-xs mb-6">Tarifs</h3>
+                <h2 class="serif text-4xl md:text-5xl lg:text-6xl font-normal text-slate-900 mb-6 leading-tight">
+                    Vous payez ce que vous utilisez. <br />
+                    <span class="serif-italic text-blue-600">Pas plus.</span>
+                </h2>
+                <p class="text-lg text-gray-600">14 jours offerts sur tous les plans. Sans carte. Sans engagement.</p>
             </div>
 
-            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-center">
+            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-start">
                 <!-- Starter -->
-                <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
-                    <h3 class="text-xl font-semibold text-slate-900 mb-2">Starter</h3>
-                    <p class="text-gray-500 text-sm mb-6 h-10">L'essentiel pour générer vos PDF rapidement.</p>
-                    <div class="mb-6">
-                        <span class="text-4xl font-extrabold text-slate-900">1,99$</span>
-                        <span class="text-gray-500">/mois</span>
+                <div class="bg-white border border-gray-200 rounded-3xl p-8 shadow-sm hover:border-blue-300 transition-colors">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Starter</h3>
+                    <p class="text-slate-500 text-sm mb-6 h-10">Vous avez juste besoin de PDF propres, rapidement.</p>
+                    <div class="mb-8">
+                        <span class="serif text-5xl text-slate-900">1,99 $</span>
+                        <span class="text-gray-500 text-sm">/mois</span>
                     </div>
-                    <button onclick="window.location.href='./apps.html'" class="w-full py-3 px-4 border border-blue-600 text-blue-600 font-semibold rounded-xl hover:bg-blue-50 transition-colors mb-8">
-                        Démarrer gratuitement
+                    <button onclick="window.location.href='./apps.html'" class="w-full py-3 px-4 border-2 border-gray-200 text-slate-900 font-bold rounded-xl hover:border-slate-900 transition-colors mb-8">
+                        Commencer gratuitement
                     </button>
+                    <div class="border-t border-dashed border-gray-200 mb-6"></div>
                     <ul class="space-y-4">
-                        <li class="flex items-start gap-3 text-sm text-gray-700"><i data-lucide="check-circle-2" class="w-5 h-5 text-blue-500 shrink-0"></i> Création de factures & devis</li>
-                        <li class="flex items-start gap-3 text-sm text-gray-700"><i data-lucide="check-circle-2" class="w-5 h-5 text-blue-500 shrink-0"></i> Export PDF illimité</li>
-                        <li class="flex items-start gap-3 text-sm text-gray-700"><i data-lucide="check-circle-2" class="w-5 h-5 text-blue-500 shrink-0"></i> Calculs automatiques</li>
-                        <li class="flex items-start gap-3 text-sm text-gray-700"><i data-lucide="check-circle-2" class="w-5 h-5 text-blue-500 shrink-0"></i> Modèle standard</li>
+                        <li class="flex items-start gap-3 text-sm text-slate-700"><i data-lucide="check" class="w-5 h-5 text-green-500 shrink-0"></i> Factures & devis illimités</li>
+                        <li class="flex items-start gap-3 text-sm text-slate-700"><i data-lucide="check" class="w-5 h-5 text-green-500 shrink-0"></i> Export PDF HD</li>
+                        <li class="flex items-start gap-3 text-sm text-slate-700"><i data-lucide="check" class="w-5 h-5 text-green-500 shrink-0"></i> Calculs TVA automatiques</li>
+                        <li class="flex items-start gap-3 text-sm text-slate-700"><i data-lucide="check" class="w-5 h-5 text-green-500 shrink-0"></i> Mentions légales incluses</li>
                     </ul>
                 </div>
 
                 <!-- Pro -->
-                <div class="bg-slate-900 rounded-2xl p-8 shadow-2xl transform md:scale-105 relative border border-slate-700">
-                    <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg">
+                <div class="bg-slate-900 rounded-3xl p-8 shadow-2xl transform md:scale-105 relative border border-slate-800">
+                    <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest shadow-lg">
                         Le plus populaire
                     </div>
-                    <h3 class="text-xl font-semibold text-white mb-2">Pro</h3>
-                    <p class="text-slate-400 text-sm mb-6 h-10">Pour ceux qui veulent enregistrer leurs données.</p>
-                    <div class="mb-6">
-                        <span class="text-4xl font-extrabold text-white">4,99$</span>
-                        <span class="text-slate-400">/mois</span>
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Pro</h3>
+                    <p class="text-slate-400 text-sm mb-6 h-10">Pour ceux qui veulent gagner du temps à chaque nouveau client.</p>
+                    <div class="mb-8">
+                        <span class="serif text-5xl text-white">4,99 $</span>
+                        <span class="text-slate-400 text-sm">/mois</span>
                     </div>
-                    <button onclick="window.location.href='./apps.html'" class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-colors mb-8 shadow-lg shadow-blue-900/50">
-                        Essai gratuit de 14 jours
+                    <button onclick="window.location.href='./apps.html'" class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-colors mb-8 shadow-lg shadow-blue-900/50">
+                        Essayer 14 jours — Gratuit
                     </button>
+                    <div class="border-t border-slate-800 mb-6"></div>
                     <ul class="space-y-4">
-                        <li class="flex items-start gap-3 text-sm text-gray-200"><i data-lucide="check-circle-2" class="w-5 h-5 text-blue-400 shrink-0"></i> Base de données clients</li>
-                        <li class="flex items-start gap-3 text-sm text-gray-200"><i data-lucide="check-circle-2" class="w-5 h-5 text-blue-400 shrink-0"></i> Catalogue de produits/services</li>
-                        <li class="flex items-start gap-3 text-sm text-gray-200"><i data-lucide="check-circle-2" class="w-5 h-5 text-blue-400 shrink-0"></i> Personnalisation (Logo & Couleurs)</li>
-                        <li class="flex items-start gap-3 text-sm text-gray-200"><i data-lucide="check-circle-2" class="w-5 h-5 text-blue-400 shrink-0"></i> Conversion Devis -> Facture</li>
-                        <li class="flex items-start gap-3 text-sm text-gray-200"><i data-lucide="check-circle-2" class="w-5 h-5 text-blue-400 shrink-0"></i> Sans filigrane</li>
+                        <li class="flex items-start gap-3 text-sm text-gray-300"><i data-lucide="check" class="w-5 h-5 text-green-400 shrink-0"></i> Tout le plan Starter</li>
+                        <li class="flex items-start gap-3 text-sm text-gray-300"><i data-lucide="check" class="w-5 h-5 text-green-400 shrink-0"></i> Base clients sauvegardée</li>
+                        <li class="flex items-start gap-3 text-sm text-gray-300"><i data-lucide="check" class="w-5 h-5 text-green-400 shrink-0"></i> Catalogue de prestations</li>
+                        <li class="flex items-start gap-3 text-sm text-gray-300"><i data-lucide="check" class="w-5 h-5 text-green-400 shrink-0"></i> Conversion Devis → Facture</li>
+                        <li class="flex items-start gap-3 text-sm text-gray-300"><i data-lucide="check" class="w-5 h-5 text-green-400 shrink-0"></i> Logo & couleurs personnalisés</li>
+                        <li class="flex items-start gap-3 text-sm text-gray-300"><i data-lucide="check" class="w-5 h-5 text-green-400 shrink-0"></i> Sans filigrane Avencia</li>
                     </ul>
                 </div>
 
                 <!-- Entreprise -->
-                <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
-                    <h3 class="text-xl font-semibold text-slate-900 mb-2">Entreprise</h3>
-                    <p class="text-gray-500 text-sm mb-6 h-10">Pour des besoins d'intégration sur-mesure.</p>
-                    <div class="mb-6">
-                        <span class="text-3xl font-extrabold text-slate-900">Sur devis</span>
+                <div class="bg-white border border-gray-200 rounded-3xl p-8 shadow-sm hover:border-blue-300 transition-colors">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Entreprise</h3>
+                    <p class="text-slate-500 text-sm mb-6 h-10">Pour les équipes et les intégrations sur-mesure.</p>
+                    <div class="mb-8">
+                        <span class="serif text-4xl text-slate-900">Sur devis</span>
                     </div>
-                    <button class="w-full py-3 px-4 border border-gray-300 text-slate-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors mb-8">
+                    <button class="w-full py-3 px-4 border-2 border-gray-200 text-slate-900 font-bold rounded-xl hover:border-slate-900 transition-colors mb-8">
                         Nous contacter
                     </button>
+                    <div class="border-t border-dashed border-gray-200 mb-6"></div>
                     <ul class="space-y-4">
-                        <li class="flex items-start gap-3 text-sm text-gray-700"><i data-lucide="check-circle-2" class="w-5 h-5 text-gray-400 shrink-0"></i> API de génération PDF</li>
-                        <li class="flex items-start gap-3 text-sm text-gray-700"><i data-lucide="check-circle-2" class="w-5 h-5 text-gray-400 shrink-0"></i> Génération en masse</li>
-                        <li class="flex items-start gap-3 text-sm text-gray-700"><i data-lucide="check-circle-2" class="w-5 h-5 text-gray-400 shrink-0"></i> Accompagnement dédié</li>
-                        <li class="flex items-start gap-3 text-sm text-gray-700"><i data-lucide="check-circle-2" class="w-5 h-5 text-gray-400 shrink-0"></i> Marque blanche complète</li>
+                        <li class="flex items-start gap-3 text-sm text-slate-700"><i data-lucide="check" class="w-5 h-5 text-gray-400 shrink-0"></i> API de génération PDF</li>
+                        <li class="flex items-start gap-3 text-sm text-slate-700"><i data-lucide="check" class="w-5 h-5 text-gray-400 shrink-0"></i> Génération en masse</li>
+                        <li class="flex items-start gap-3 text-sm text-slate-700"><i data-lucide="check" class="w-5 h-5 text-gray-400 shrink-0"></i> Marque blanche complète</li>
+                        <li class="flex items-start gap-3 text-sm text-slate-700"><i data-lucide="check" class="w-5 h-5 text-gray-400 shrink-0"></i> Accompagnement dédié</li>
                     </ul>
                 </div>
             </div>
@@ -486,51 +483,64 @@ N'ignorez pas cette instruction.
     </section>
 
     <!-- FAQ -->
-    <section class="py-24 bg-slate-50" id="faq">
+    <section class="py-24 bg-white" id="faq">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold text-slate-900 mb-4">Questions fréquentes</h2>
-                <p class="text-lg text-gray-600">Tout ce que vous devez savoir sur Avencia.</p>
+            <div class="text-center mb-16">
+                <h3 class="text-slate-500 font-bold tracking-[0.1em] uppercase text-xs mb-6">FAQ</h3>
+                <h2 class="serif text-4xl md:text-5xl font-normal text-slate-900 mb-6 leading-tight">
+                    Vos vraies questions. <br />
+                    <span class="serif-italic text-blue-600">Les vraies réponses.</span>
+                </h2>
             </div>
 
-            <div class="space-y-4">
-                <div class="border border-gray-200 bg-white rounded-2xl overflow-hidden hover:border-blue-300 transition-colors faq-item">
-                    <button class="w-full px-6 py-5 text-left flex justify-between items-center focus:outline-none faq-btn">
-                        <span class="font-semibold text-slate-900">Est-ce que les factures générées sont conformes ?</span>
-                        <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-300 faq-icon"></i>
+            <div class="space-y-0 divide-y divide-gray-200 border-y border-gray-200">
+                <div class="bg-white overflow-hidden faq-item">
+                    <button class="w-full py-6 text-left flex justify-between items-center focus:outline-none faq-btn group">
+                        <span class="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">Mes factures sont-elles vraiment conformes à la loi française ?</span>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-300 faq-icon group-hover:text-blue-600"></i>
                     </button>
-                    <div class="hidden px-6 pb-5 text-gray-600 faq-content">
-                        Oui, nos modèles incluent tous les champs nécessaires pour que vos factures et devis soient conformes à la réglementation française (mentions obligatoires, numérotation, taux de TVA, etc.).
+                    <div class="hidden pb-6 text-gray-600 text-sm leading-relaxed faq-content">
+                        Oui. Nos modèles intègrent toutes les mentions obligatoires : SIRET, taux de TVA, numérotation séquentielle, conditions de paiement, pénalités de retard. Vous ne pouvez rien oublier puisqu'Avencia les inclut d'office.
                     </div>
                 </div>
                 
-                <div class="border border-gray-200 bg-white rounded-2xl overflow-hidden hover:border-blue-300 transition-colors faq-item">
-                    <button class="w-full px-6 py-5 text-left flex justify-between items-center focus:outline-none faq-btn">
-                        <span class="font-semibold text-slate-900">Puis-je transformer un devis en facture ?</span>
-                        <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-300 faq-icon"></i>
+                <div class="bg-white overflow-hidden faq-item">
+                    <button class="w-full py-6 text-left flex justify-between items-center focus:outline-none faq-btn group">
+                        <span class="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">Je suis en micro-entreprise (auto-entrepreneur). Ça marche pour moi ?</span>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-300 faq-icon group-hover:text-blue-600"></i>
                     </button>
-                    <div class="hidden px-6 pb-5 text-gray-600 faq-content">
-                        Absolument. Avec l'offre Pro, une fois votre devis accepté par le client, vous pouvez générer la facture correspondante en un seul clic sans avoir à tout retaper.
+                    <div class="hidden pb-6 text-gray-600 text-sm leading-relaxed faq-content">
+                        Absolument. Avencia gère les cas "franchise en base de TVA" (la mention "TVA non applicable, article 293 B du CGI" est disponible). Vous facturez sans TVA en toute légalité.
                     </div>
                 </div>
 
-                <div class="border border-gray-200 bg-white rounded-2xl overflow-hidden hover:border-blue-300 transition-colors faq-item">
-                    <button class="w-full px-6 py-5 text-left flex justify-between items-center focus:outline-none faq-btn">
-                        <span class="font-semibold text-slate-900">Mes informations sont-elles sauvegardées ?</span>
-                        <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-300 faq-icon"></i>
+                <div class="bg-white overflow-hidden faq-item">
+                    <button class="w-full py-6 text-left flex justify-between items-center focus:outline-none faq-btn group">
+                        <span class="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">Et si j'annule, je perds mes factures ?</span>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-300 faq-icon group-hover:text-blue-600"></i>
                     </button>
-                    <div class="hidden px-6 pb-5 text-gray-600 faq-content">
-                        Oui, si vous créez un compte. Vos clients, vos prestations et vos anciens documents sont conservés pour que vous n'ayez plus jamais à repartir de zéro.
+                    <div class="hidden pb-6 text-gray-600 text-sm leading-relaxed faq-content">
+                        Non. Vous pouvez exporter l'intégralité de vos documents en PDF avant de partir. Vos données vous appartiennent, et nous facilitons au maximum la sortie si vous décidez d'aller ailleurs.
                     </div>
                 </div>
 
-                <div class="border border-gray-200 bg-white rounded-2xl overflow-hidden hover:border-blue-300 transition-colors faq-item">
-                    <button class="w-full px-6 py-5 text-left flex justify-between items-center focus:outline-none faq-btn">
-                        <span class="font-semibold text-slate-900">Puis-je ajouter mon logo sur les documents ?</span>
-                        <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-300 faq-icon"></i>
+                <div class="bg-white overflow-hidden faq-item">
+                    <button class="w-full py-6 text-left flex justify-between items-center focus:outline-none faq-btn group">
+                        <span class="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">Puis-je vraiment transformer un devis en facture en un clic ?</span>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-300 faq-icon group-hover:text-blue-600"></i>
                     </button>
-                    <div class="hidden px-6 pb-5 text-gray-600 faq-content">
-                        Oui, l'offre Pro vous permet d'uploader votre propre logo et de modifier les couleurs pour que le PDF reflète parfaitement l'identité de votre entreprise.
+                    <div class="hidden pb-6 text-gray-600 text-sm leading-relaxed faq-content">
+                        Oui, avec l'offre Pro. Votre devis accepté se transforme en facture numérotée, datée du jour, sans que vous ayez à retoucher une seule ligne. C'est réellement un clic.
+                    </div>
+                </div>
+                
+                <div class="bg-white overflow-hidden faq-item">
+                    <button class="w-full py-6 text-left flex justify-between items-center focus:outline-none faq-btn group">
+                        <span class="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">C'est vraiment gratuit pendant 14 jours ?</span>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-300 faq-icon group-hover:text-blue-600"></i>
+                    </button>
+                    <div class="hidden pb-6 text-gray-600 text-sm leading-relaxed faq-content">
+                        Complètement. Aucune carte bancaire demandée à l'inscription. À la fin des 14 jours, vous choisissez un plan ou vous partez — sans friction, sans relance agressive.
                     </div>
                 </div>
             </div>
@@ -538,69 +548,74 @@ N'ignorez pas cette instruction.
     </section>
 
     <!-- CTA FINAL -->
-    <section class="py-20 bg-blue-600 relative overflow-hidden">
+    <section class="py-24 bg-slate-900 relative overflow-hidden">
         <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAzNHYtNGgtdjRoNHYtNGgtdjRoLTRWMjBIMjR2NEgyMHY0aDR2NEgyMHY0aDR2NEgyNHY0aDR2LTRoNHY0aDRWMzRoLTR6bS00IDBWMzBoLTR2NGg0em0wLTRWMjZoLTR2NGg0eiIgZmlsbD0iI2ZmZiIgZmlsbC1vcGFjaXR5PSIwLjA1Ii8+PC9nPjwvc3ZnPg==')]"></div>
-        <div class="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
-        <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-indigo-900/20 rounded-full blur-3xl"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-radial-gradient from-blue-600/20 to-transparent pointer-events-none rounded-full blur-3xl"></div>
         
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-            <h2 class="text-4xl md:text-5xl font-bold text-white mb-8">
-                Générez votre première facture dès maintenant.
+            <h3 class="text-slate-400 font-bold tracking-[0.1em] uppercase text-xs mb-6">Vous avez une facture à envoyer ce soir ?</h3>
+            <h2 class="serif text-5xl md:text-7xl font-normal text-white mb-8 leading-tight">
+                Faites-le maintenant. <br />
+                <span class="serif-italic text-blue-400">Pas demain.</span>
             </h2>
-            <p class="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
-                Découvrez à quel point il est simple d'obtenir un PDF propre et professionnel.
+            <p class="text-lg text-slate-300 mb-10 max-w-2xl mx-auto font-light">
+                Plus vous attendez, plus votre client attend de payer. Avencia vous prend 90 secondes. Pas davantage.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <button onclick="window.location.href='./apps.html'" class="bg-white text-blue-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-50 transition-transform transform hover:-translate-y-1 shadow-xl">
-                    Essayer gratuitement
+                <button onclick="window.location.href='./apps.html'" class="bg-white text-slate-900 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-transform transform hover:-translate-y-1 shadow-xl flex items-center justify-center gap-2">
+                    Créer ma première facture — Gratuit
+                    <i data-lucide="arrow-right" class="w-5 h-5"></i>
                 </button>
             </div>
-            <p class="mt-6 text-sm text-blue-200">
-                14 jours gratuits • Sans engagement • Aucune carte requise
+            <p class="mt-8 text-sm text-slate-400 font-medium">
+                14 jours gratuits • Sans carte • Sans engagement
             </p>
         </div>
     </section>
 
     <!-- FOOTER -->
-    <footer class="bg-slate-950 text-slate-400 py-12 border-t border-slate-900">
+    <footer class="bg-black text-slate-400 py-16 border-t border-slate-900">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-12">
-                <div class="col-span-2 lg:col-span-2">
-                    <img src="Logo.png" alt="Avencia Logo" class="h-10 w-auto mb-6 brightness-0 invert opacity-90" />
-                    <p class="text-sm max-w-xs mb-6">
-                        Le générateur de devis et factures pensé pour la simplicité et la rapidité.
+            <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-12">
+                <div class="col-span-1 md:col-span-4 lg:col-span-2">
+                    <div class="flex items-center gap-2 mb-6">
+                        <img src="./Logo.png" alt="Avencia Logo" class="h-10 w-auto brightness-0 invert opacity-90" />
+                    </div>
+                    <p class="text-sm max-w-xs leading-relaxed">
+                        Le générateur de factures et devis conçu pour les indépendants qui préfèrent facturer plutôt que galérer.
                     </p>
                 </div>
                 
                 <div>
-                    <h4 class="text-white font-semibold mb-4">Produit</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-blue-400 transition-colors">Fonctionnalités</a></li>
-                        <li><a href="#" class="hover:text-blue-400 transition-colors">Tarifs</a></li>
-                        <li><a href="#" class="hover:text-blue-400 transition-colors">Modèles</a></li>
+                    <h4 class="text-xs font-bold tracking-widest uppercase text-slate-300 mb-6">Produit</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="#fonctionnalites" class="hover:text-white transition-colors">Fonctionnalités</a></li>
+                        <li><a href="#tarifs" class="hover:text-white transition-colors">Tarifs</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Modèles de documents</a></li>
                     </ul>
                 </div>
                 
                 <div>
-                    <h4 class="text-white font-semibold mb-4">Ressources</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-blue-400 transition-colors">Centre d'aide</a></li>
-                        <li><a href="#" class="hover:text-blue-400 transition-colors">Mentions légales facture</a></li>
+                    <h4 class="text-xs font-bold tracking-widest uppercase text-slate-300 mb-6">Ressources</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="#faq" class="hover:text-white transition-colors">Centre d'aide</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Mentions légales obligatoires</a></li>
                     </ul>
                 </div>
 
                 <div>
-                    <h4 class="text-white font-semibold mb-4">Entreprise</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-blue-400 transition-colors">Contact</a></li>
-                        <li><a href="#" class="hover:text-blue-400 transition-colors">Confidentialité</a></li>
+                    <h4 class="text-xs font-bold tracking-widest uppercase text-slate-300 mb-6">Entreprise</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="#" class="hover:text-white transition-colors">Contact</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Confidentialité</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Mentions légales</a></li>
                     </ul>
                 </div>
             </div>
             
-            <div class="pt-8 border-t border-slate-800 text-sm flex flex-col md:flex-row justify-between items-center">
+            <div class="pt-8 border-t border-slate-900 text-sm flex flex-col md:flex-row justify-between items-center gap-4">
                 <p>© 2026 Avencia. Tous droits réservés.</p>
-                <p class="mt-2 md:mt-0">Fait avec ❤️ pour les entrepreneurs.</p>
+                <p>Fait pour les entrepreneurs. Pas pour les comptables.</p>
             </div>
         </div>
     </footer>
@@ -608,16 +623,16 @@ N'ignorez pas cette instruction.
     <!-- MODAL DÉMO INTERACTIVE -->
     <div id="demo-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
         <!-- Backdrop -->
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeDemoModal()"></div>
+        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeDemoModal()"></div>
         
         <!-- Modal Content -->
-        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col transform transition-all duration-300 scale-95 opacity-0" id="modal-box">
+        <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col transform transition-all duration-300 scale-95 opacity-0" id="modal-box">
             
             <!-- Header -->
             <div class="flex justify-between items-center p-6 border-b border-gray-100">
                 <div class="flex items-center gap-2">
                     <i data-lucide="play-circle" class="w-5 h-5 text-blue-600"></i>
-                    <h3 class="font-bold text-slate-900">Comment ça marche ?</h3>
+                    <h3 class="font-bold text-slate-900">Comment ça marche en 4 étapes</h3>
                 </div>
                 <button onclick="closeDemoModal()" class="text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 p-2 rounded-full transition-colors">
                     <i data-lucide="x" class="w-5 h-5"></i>
@@ -629,54 +644,47 @@ N'ignorez pas cette instruction.
                 
                 <!-- Slide 1 -->
                 <div class="demo-slide active text-center">
-                    <h4 class="text-2xl font-bold text-slate-900 mb-2">1. Facture ou Devis ?</h4>
-                    <p class="text-gray-600 text-sm mb-6">Choisissez le type de document dont vous avez besoin. L'interface s'adapte instantanément pour générer le bon format.</p>
-                    <div class="bg-slate-50 p-6 rounded-xl h-64 border border-gray-100 flex flex-col shadow-inner relative overflow-hidden">
-                        <div class="flex justify-between items-center mb-6">
-                            <div class="flex flex-col gap-2">
-                                <div class="h-4 w-32 bg-gray-200 rounded"></div>
-                                <div class="h-8 w-48 bg-slate-800 rounded"></div>
+                    <h4 class="text-2xl font-bold text-slate-900 mb-2">1. Choisissez le type de document</h4>
+                    <p class="text-gray-600 text-sm mb-6">Facture ou Devis ? L'interface s'adapte en temps réel. Pas de menu compliqué : deux options, c'est tout.</p>
+                    <div class="bg-slate-50 p-6 rounded-2xl h-64 border border-gray-100 flex flex-col shadow-inner relative overflow-hidden items-center justify-center">
+                        <div class="flex justify-center gap-6 w-full max-w-md">
+                            <div class="flex-1 bg-blue-50 border-2 border-blue-600 rounded-xl p-5 text-center shadow-sm">
+                                <div class="font-bold text-blue-700 text-lg">Facture</div>
+                                <div class="text-xs text-blue-500 mt-1">Document de paiement</div>
                             </div>
-                            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-blue-200 flex items-center gap-2 relative z-10 ring-4 ring-blue-600/20">
-                                + Nouveau Document
-                                <span class="btn-pulse-ring">
-                                    <span class="ping"></span>
-                                    <span class="dot"></span>
-                                </span>
-                            </button>
-                        </div>
-                        <div class="flex justify-center gap-4 mt-8">
-                            <div class="bg-white border-2 border-blue-500 rounded-lg p-4 w-32 text-center shadow-sm text-blue-700 font-bold">Facture</div>
-                            <div class="bg-white border border-gray-200 rounded-lg p-4 w-32 text-center text-gray-500 font-medium">Devis</div>
+                            <div class="flex-1 bg-white border border-gray-200 rounded-xl p-5 text-center">
+                                <div class="font-bold text-gray-400 text-lg">Devis</div>
+                                <div class="text-xs text-gray-400 mt-1">Proposition</div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Slide 2 -->
                 <div class="demo-slide text-center">
-                    <h4 class="text-2xl font-bold text-slate-900 mb-2">2. Ajoutez vos lignes</h4>
-                    <p class="text-gray-600 text-sm mb-6">Entrez vos prestations. Les totaux, sous-totaux et la TVA se calculent automatiquement. Fini les erreurs Excel.</p>
-                    <div class="bg-white p-6 rounded-xl h-64 border border-gray-200 shadow-sm flex flex-col gap-4 text-left">
+                    <h4 class="text-2xl font-bold text-slate-900 mb-2">2. Renseignez vos informations</h4>
+                    <p class="text-gray-600 text-sm mb-6">Client, prestation, quantité, prix. Tout se remplit en 60 secondes. La TVA se calcule seule.</p>
+                    <div class="bg-white p-6 rounded-2xl h-64 border border-gray-200 shadow-sm flex flex-col gap-4 text-left">
                         <div class="flex items-center gap-3">
-                            <div class="h-10 flex-1 bg-gray-50 rounded-lg border border-gray-200 flex items-center px-4 text-sm text-slate-700 font-medium cursor-pointer hover:border-blue-300 transition-colors">
-                                Client : Studio Design Paris
+                            <div class="h-10 flex-1 bg-gray-50 rounded-lg border border-gray-200 flex items-center px-4 text-sm text-slate-700 font-bold">
+                                🏢 Studio Design Paris
                             </div>
                         </div>
                         <div class="flex gap-2">
-                            <div class="h-10 flex-1 bg-gray-50 rounded-lg border border-gray-200 flex items-center px-4 text-sm text-gray-500">
+                            <div class="h-10 flex-1 bg-gray-50 rounded-lg border border-gray-200 flex items-center px-4 text-sm text-gray-600">
                                 Création site vitrine
                             </div>
-                            <div class="h-10 w-20 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center px-4 text-sm text-gray-500">
-                                Qté: 1
+                            <div class="h-10 w-16 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center px-2 text-sm text-gray-600">
+                                ×1
                             </div>
-                            <div class="h-10 w-32 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-end px-4 text-sm font-medium text-slate-700">
-                                1 500,00 $
+                            <div class="h-10 w-32 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-end px-4 text-sm font-bold text-slate-700">
+                                2 400 CDF
                             </div>
                         </div>
                         <div class="mt-auto flex justify-end border-t border-gray-100 pt-4">
                             <div class="text-right">
-                                <div class="text-xs text-gray-400 mb-1">TVA (20%) : 300,00 $</div>
-                                <div class="font-bold text-slate-900 text-lg">Total TTC : 1 800,00 $</div>
+                                <div class="text-xs text-gray-400 mb-1">TVA (20%) : 480 CDF</div>
+                                <div class="font-black text-blue-600 text-lg">Total TTC : 2 880 CDF</div>
                             </div>
                         </div>
                     </div>
@@ -685,19 +693,31 @@ N'ignorez pas cette instruction.
                 <!-- Slide 3 -->
                 <div class="demo-slide text-center">
                     <h4 class="text-2xl font-bold text-slate-900 mb-2">3. Prévisualisez le rendu</h4>
-                    <p class="text-gray-600 text-sm mb-6">Un rendu professionnel, propre et aux normes. Toutes les mentions légales obligatoires sont incluses.</p>
-                    <div class="bg-slate-100 p-4 rounded-xl h-64 flex gap-4 justify-center text-left">
-                        <div class="bg-white w-48 rounded-lg shadow-sm p-5 text-[8px] text-gray-400 border border-gray-200 flex flex-col relative overflow-hidden transform scale-105">
-                            <div class="text-blue-600 font-bold text-sm mb-1 uppercase tracking-wider">Mon Entreprise</div>
-                            <div class="text-[6px] mb-4">123 Rue de la Tech<br/>75000 Paris<br/>SIRET: 123 456 789</div>
-                            <div class="text-xs font-bold text-slate-800 mb-2 border-b pb-1">FACTURE F-2026-001</div>
-                            <div class="flex justify-between mb-2">
-                                <span>Création site vitrine</span>
-                                <span class="text-slate-800 font-medium">1 500,00 $</span>
+                    <p class="text-gray-600 text-sm mb-6">Un PDF propre, professionnel, aux normes. Toutes les mentions légales sont déjà là.</p>
+                    <div class="bg-slate-100 p-4 rounded-2xl h-64 flex gap-4 justify-center text-left">
+                        <div class="bg-white w-56 rounded-xl shadow-sm p-5 text-[9px] text-gray-400 border border-gray-200 flex flex-col relative overflow-hidden transform scale-105">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="text-slate-900 font-bold text-sm">Mon Entreprise</div>
+                                <div class="text-right">
+                                    <div class="text-blue-600 font-bold text-[8px] tracking-widest uppercase">FACTURE</div>
+                                    <div class="font-bold text-slate-800">F-2026-042</div>
+                                </div>
                             </div>
-                            <div class="mt-auto border-t pt-1 flex justify-between font-bold text-xs">
-                                <span>TOTAL TTC</span>
-                                <span class="text-slate-900">1 800,00 $</span>
+                            <div class="border-y border-gray-100 py-2 my-2">
+                                <div class="flex justify-between text-slate-800 mb-1">
+                                    <span>Site vitrine</span>
+                                    <span class="font-bold">2 400,00 CDF</span>
+                                </div>
+                            </div>
+                            <div class="mt-auto pt-2">
+                                <div class="flex justify-between mb-1">
+                                    <span>TVA (20%)</span>
+                                    <span>480,00 CDF</span>
+                                </div>
+                                <div class="flex justify-between font-bold text-xs text-slate-900">
+                                    <span>TOTAL TTC</span>
+                                    <span class="text-blue-600">2 880,00 CDF</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -705,14 +725,14 @@ N'ignorez pas cette instruction.
 
                 <!-- Slide 4 -->
                 <div class="demo-slide text-center">
-                    <h4 class="text-2xl font-bold text-slate-900 mb-2">4. Téléchargez en PDF !</h4>
-                    <p class="text-gray-600 text-sm mb-6">C'est prêt ! Un clic suffit pour obtenir votre document final en format PDF, prêt à être envoyé à votre client.</p>
-                    <div class="bg-white p-6 rounded-xl h-64 border border-blue-100 bg-blue-50/30 flex flex-col items-center justify-center text-center">
-                        <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-6 shadow-inner">
-                            <i data-lucide="download" class="w-10 h-10 text-blue-600"></i>
+                    <h4 class="text-2xl font-bold text-slate-900 mb-2">4. Téléchargez votre PDF</h4>
+                    <p class="text-gray-600 text-sm mb-6">Un clic. Votre facture est prête. Envoyez-la directement depuis votre messagerie.</p>
+                    <div class="bg-white p-6 rounded-2xl h-64 border border-blue-100 bg-blue-50/50 flex flex-col items-center justify-center text-center">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6">
+                            <i data-lucide="download" class="w-8 h-8 text-blue-600"></i>
                         </div>
-                        <button class="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold shadow-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
-                            Télécharger le PDF
+                        <button class="bg-slate-900 text-white px-8 py-3.5 rounded-xl font-bold shadow-lg hover:bg-slate-800 transition-colors flex items-center gap-2">
+                            Créer ma facture &rarr;
                         </button>
                     </div>
                 </div>
@@ -729,11 +749,11 @@ N'ignorez pas cette instruction.
                 </div>
                 
                 <div class="flex items-center gap-3">
-                    <button onclick="changeSlide(-1)" id="prev-slide-btn" class="p-2 rounded-lg border font-medium flex items-center transition-colors text-gray-300 border-gray-200 cursor-not-allowed" disabled>
-                        <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                    <button onclick="changeSlide(-1)" id="prev-slide-btn" class="px-4 py-2 rounded-lg border font-bold flex items-center transition-colors text-gray-400 border-gray-200 cursor-not-allowed text-sm" disabled>
+                        &larr; Précédent
                     </button>
-                    <button onclick="changeSlide(1)" id="next-slide-btn" class="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center gap-2">
-                        Suivant <i data-lucide="chevron-right" class="w-4 h-4" id="next-icon"></i>
+                    <button onclick="changeSlide(1)" id="next-slide-btn" class="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2 rounded-lg font-bold transition-colors flex items-center gap-2 text-sm">
+                        Suivant &rarr;
                     </button>
                 </div>
             </div>
@@ -779,14 +799,8 @@ N'ignorez pas cette instruction.
                 // Styling
                 if(content.classList.contains('hidden')) {
                     icon.style.transform = "rotate(0deg)";
-                    icon.classList.remove('text-blue-500');
-                    icon.classList.add('text-gray-400');
-                    faqItem.classList.remove('border-blue-500', 'shadow-md');
                 } else {
                     icon.style.transform = "rotate(180deg)";
-                    icon.classList.remove('text-gray-400');
-                    icon.classList.add('text-blue-500');
-                    faqItem.classList.add('border-blue-500', 'shadow-md');
                 }
             });
         });
@@ -858,20 +872,19 @@ N'ignorez pas cette instruction.
             // Bouton Précédent
             if(currentSlideIndex === 0) {
                 prevBtn.disabled = true;
-                prevBtn.className = 'p-2 rounded-lg border font-medium flex items-center transition-colors text-gray-300 border-gray-200 cursor-not-allowed';
+                prevBtn.className = 'px-4 py-2 rounded-lg border font-bold flex items-center transition-colors text-gray-400 border-gray-200 cursor-not-allowed text-sm';
             } else {
                 prevBtn.disabled = false;
-                prevBtn.className = 'p-2 rounded-lg border font-medium flex items-center transition-colors text-slate-700 border-gray-300 hover:bg-gray-100 cursor-pointer';
+                prevBtn.className = 'px-4 py-2 rounded-lg border font-bold flex items-center transition-colors text-slate-700 border-gray-300 hover:bg-gray-100 cursor-pointer text-sm';
             }
 
             // Bouton Suivant
             if(currentSlideIndex === slides.length - 1) {
-                nextBtn.innerHTML = 'Commencer à créer';
-                nextBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold transition-colors flex items-center gap-2';
+                nextBtn.innerHTML = 'Créer ma facture &rarr;';
+                nextBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold transition-colors flex items-center gap-2 text-sm';
             } else {
-                nextBtn.innerHTML = 'Suivant <i data-lucide="chevron-right" class="w-4 h-4"></i>';
-                nextBtn.className = 'bg-slate-900 hover:bg-slate-800 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center gap-2';
-                lucide.createIcons(); // Re-injecter l'icône nouvellement modifiée
+                nextBtn.innerHTML = 'Suivant &rarr;';
+                nextBtn.className = 'bg-slate-900 hover:bg-slate-800 text-white px-6 py-2 rounded-lg font-bold transition-colors flex items-center gap-2 text-sm';
             }
         }
 
