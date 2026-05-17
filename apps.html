@@ -98,7 +98,7 @@
     <!-- ÉCRAN D'AUTHENTIFICATION -->
     <div id="auth-screen" class="fixed inset-0 bg-slate-50 z-[200] flex flex-col items-center justify-center hidden">
         <div class="mb-8 flex justify-center">
-            <img src="Logo.png" alt="Logo de l'application" class="h-20 md:h-24 object-contain" onerror="this.onerror=null; this.outerHTML='<h1 class=\'font-black text-4xl tracking-tight text-[#0a1b4f]\'>AVENCIA</h1>'">
+            <span id="auth-logo" class="font-black text-4xl tracking-tight text-[#0a1b4f]"></span>
         </div>
         <div class="bg-white p-6 md:p-8 rounded-2xl shadow-xl border border-slate-200 w-[90%] max-w-md">
             <h2 class="text-2xl font-bold text-center text-slate-800 mb-2">Bienvenue</h2>
@@ -136,8 +136,8 @@
     <!-- MENU MOBILE (DRAWER) -->
     <div id="mobile-menu-overlay" class="fixed inset-0 bg-slate-900/50 z-[150] hidden opacity-0 transition-opacity duration-300">
         <div id="mobile-menu-drawer" class="w-64 bg-white h-full flex flex-col shadow-2xl transform -translate-x-full transition-transform duration-300">
-            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
-                <img src="Logo.png" alt="Logo" class="h-8 object-contain" onerror="this.onerror=null; this.outerHTML='<span class=\'font-bold text-xl tracking-tight text-[#0a1b4f]\'>AVENCIA</span>'">
+                <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                <span id="mobile-drawer-brand" class="font-bold text-xl tracking-tight text-[#0a1b4f]"></span>
                 <button onclick="toggleMobileMenu()" class="p-2 text-slate-400 hover:text-slate-700 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
             <nav class="flex-1 py-4 flex flex-col gap-1 overflow-y-auto">
@@ -170,7 +170,7 @@
         <!-- SIDEBAR DESKTOP -->
         <aside class="w-64 bg-white border-r border-slate-200 flex flex-col hidden md:flex z-50 shadow-sm">
             <div class="p-6 border-b border-slate-100 flex items-center justify-center h-[88px]">
-                <img src="Logo.png" alt="Logo" class="h-10 w-full object-contain" onerror="this.onerror=null; this.outerHTML='<span class=\'font-bold text-2xl tracking-tight text-[#0a1b4f]\'>AVENCIA</span>'">
+                <span id="sidebar-brand" class="font-bold text-2xl tracking-tight text-[#0a1b4f]"></span>
             </div>
             
             <nav class="flex-1 py-6 flex flex-col gap-2 overflow-y-auto">
@@ -215,7 +215,7 @@
                     <button onclick="toggleMobileMenu()" class="p-2 -ml-2 text-slate-600 rounded-lg active:bg-slate-100">
                         <i data-lucide="menu" class="w-6 h-6"></i>
                     </button>
-                    <img src="Logo.png" alt="Logo" class="h-7 object-contain" onerror="this.onerror=null; this.outerHTML='<span class=\'font-bold text-lg text-[#0a1b4f]\'>AVENCIA</span>'">
+                    <span id="mobile-header-brand" class="font-bold text-lg text-[#0a1b4f]"></span>
                 </div>
 
                 <!-- Vue Desktop : Titre -->
@@ -509,7 +509,7 @@
         let appHistory = JSON.parse(localStorage.getItem('avencia_docs')) || [];
 
         let state = {
-            docType: 'quote', selectedTemplate: 'modern', logo: 'Logo.png', primaryColor: '#0a1b4f',
+            docType: 'quote', selectedTemplate: 'modern', logo: null, primaryColor: '#0a1b4f',
             isGenerating: false,
             provider: { name: "", id: "", address: "", phone: "", email: "" },
             client: { name: "", address: "" },
@@ -1301,11 +1301,11 @@
             
             initAuth();
             
-            if(state.logo === 'Logo.png') {
+            if(state.logo) {
                 const previewArea = document.getElementById('logo-preview-area');
                 const imgArea = document.getElementById('logo-img');
                 if (previewArea) previewArea.classList.remove('hidden');
-                if (imgArea) imgArea.src = 'Logo.png';
+                if (imgArea) imgArea.src = state.logo;
             }
 
             // Sync inputs auto
@@ -1441,7 +1441,7 @@
             { id: 'prov_address', q: "Quelle est **votre adresse** complète ?", validate: v => v.length > 5 },
             { id: 'prov_contact', q: "Quel est votre **numéro de téléphone** ?", validate: v => v.length > 5 },
             { id: 'prov_id', q: "Votre numéro d'entreprise (Ex: RCCM ou SIRET) ?", validate: v => v.length > 2 },
-            { id: 'logo', q: "Voulez-vous ajouter un **logo** ? J'utilise `Logo.png` par défaut. Utilisez le bouton ci-dessus pour envoyer un autre logo, ou écrivez 'Non'.", type: 'file' },
+            { id: 'logo', q: "Voulez-vous ajouter un **logo** ? Aucun logo par défaut n'est utilisé. Utilisez le bouton ci-dessus pour envoyer un logo, ou écrivez 'Non'.", type: 'file' },
             { id: 'cli_name', q: "D'accord. Quel est le **nom de votre client** ?", validate: v => v.length > 1 },
             { id: 'cli_address', q: "Quelle est **l'adresse du client** ?", validate: v => v.length > 3 },
             { id: 'item_name', q: "C'est quoi le **produit ou le service** que vous vendez ?", validate: v => v.length > 2 },
