@@ -45,7 +45,10 @@ const authClient = {
         this.accessToken = null;
         this.user = null;
         localStorage.removeItem('user');
-        window.location.href = '/login.html'; // ou autre page de redirection
+        // Redirection relative au dossier actuel pour GitHub Pages
+        const path = window.location.pathname;
+        const directory = path.substring(0, path.lastIndexOf('/'));
+        window.location.href = `${directory}/login.html`;
     },
 
     async refreshToken() {
