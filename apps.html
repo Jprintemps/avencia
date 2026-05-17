@@ -125,7 +125,7 @@
     </div>
 
     <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="fixed bottom-24 md:bottom-6 right-4 md:right-6 bg-green-500 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 z-[100] toast-hidden">
+    <div id="toast" class="fixed bottom-24 md:bottom-6 right-4 md:right-6 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 z-[100] toast-hidden" style="background-color: #16a34a;">
         <i data-lucide="check-circle" class="w-5 h-5"></i>
         <div>
             <p class="font-bold text-sm" id="toast-title">Succès</p>
@@ -485,6 +485,17 @@
     </div>
     
     <!-- Zone cachée pour impression parfaite -->
+    <!-- Confirmation modal (remplace les confirm()) -->
+    <div id="confirm-modal" class="hidden fixed inset-0 z-[210] flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/50"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
+            <p id="confirm-msg" class="text-slate-800 font-medium mb-4">Confirmer ?</p>
+            <div class="flex justify-end gap-3">
+                <button id="confirm-no" class="px-4 py-2 rounded-lg bg-slate-100">Non</button>
+                <button id="confirm-yes" class="px-4 py-2 rounded-lg bg-blue-600 text-white">Oui</button>
+            </div>
+        </div>
+    </div>
     <div id="pdf-render-zone" style="position: absolute; top: -9999px; left: -9999px;"></div>
 
     <script>
@@ -657,7 +668,7 @@
 
             } catch (err) {
                 console.error("Erreur PDF:", err);
-                alert("Une erreur s'est produite lors de la génération. Veuillez réessayer.");
+                showToast("Erreur", "Une erreur s'est produite lors de la génération. Veuillez réessayer.", 'error');
             } finally {
                 state.isGenerating = false;
                 document.querySelectorAll('.generate-icon, .btn-text').forEach(el => el.classList.remove('hidden'));
@@ -723,14 +734,15 @@
         }
 
         async function handleLogout() {
-            if(confirm("Voulez-vous vous déconnecter ?")) {
+            showConfirm("Voulez-vous vous déconnecter ?", async () => {
                 if (window.authClient) {
                     await authClient.logout();
                 } else {
                     localStorage.removeItem('user');
-                    window.location.href = 'login.html';
                 }
-            }
+                // Redirect to public homepage
+                window.location.href = 'index.html';
+            });
         }
 
         function loadProfileToState() {
@@ -771,17 +783,47 @@
             }
         }
 
-        function showToast(title, msg) {
+        function showToast(title, msg, type = 'success') {
             const t = document.getElementById('toast');
             if(!t) return;
             document.getElementById('toast-title').innerText = title;
             document.getElementById('toast-msg').innerText = msg;
+            // set color by type
+            if (type === 'error') t.style.backgroundColor = '#ef4444';
+            else if (type === 'info') t.style.backgroundColor = '#0ea5e9';
+            else t.style.backgroundColor = '#16a34a';
+
             t.classList.remove('toast-hidden');
             t.classList.add('toast-visible');
             setTimeout(() => {
                 t.classList.remove('toast-visible');
                 t.classList.add('toast-hidden');
             }, 3000);
+        }
+
+        function showConfirm(message, onYes) {
+            const modal = document.getElementById('confirm-modal');
+            const msgEl = document.getElementById('confirm-msg');
+            const yesBtn = document.getElementById('confirm-yes');
+            const noBtn = document.getElementById('confirm-no');
+            if(!modal || !msgEl || !yesBtn || !noBtn) {
+                // Fallback to native confirm if modal missing
+                if (window.confirm(message)) onYes();
+                return;
+            }
+            msgEl.innerText = message;
+            modal.classList.remove('hidden');
+
+            const cleanup = () => {
+                modal.classList.add('hidden');
+                yesBtn.onclick = null;
+                noBtn.onclick = null;
+            };
+
+            yesBtn.onclick = () => {
+                try { onYes(); } finally { cleanup(); }
+            };
+            noBtn.onclick = () => { cleanup(); };
         }
 
         function saveToHistory(doc) {
@@ -801,11 +843,11 @@
         }
 
         function deleteDoc(id) {
-            if(confirm("Supprimer définitivement ce document ?")) {
+            showConfirm("Supprimer définitivement ce document ?", () => {
                 appHistory = appHistory.filter(d => d.id !== id);
                 localStorage.setItem('avencia_docs', JSON.stringify(appHistory));
                 renderHistoryList();
-            }
+            });
         }
 
         function sendReminder(email, number) {

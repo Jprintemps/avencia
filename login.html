@@ -26,6 +26,7 @@
             <div id="login-box">
                 <h2 class="text-2xl font-bold text-slate-800 mb-2">Bon retour !</h2>
                 <p class="text-slate-500 mb-8 text-sm">Connectez-vous pour gérer vos factures.</p>
+                <div id="login-error" class="hidden bg-red-50 text-red-600 p-3 rounded-xl text-xs font-medium mb-4 border border-red-100"></div>
                 
                 <form id="login-form" class="space-y-4">
                     <div>
@@ -48,6 +49,7 @@
             <div id="register-box" class="hidden">
                 <h2 class="text-2xl font-bold text-slate-800 mb-2">Créer un compte</h2>
                 <p class="text-slate-500 mb-8 text-sm">Commencez à facturer en quelques secondes.</p>
+                <div id="register-error" class="hidden bg-red-50 text-red-600 p-3 rounded-xl text-xs font-medium mb-4 border border-red-100"></div>
                 
                 <form id="register-form" class="space-y-4">
                     <div>
@@ -81,8 +83,20 @@
             document.getElementById('register-box').classList.toggle('hidden');
         }
 
+        const loginError = document.getElementById('login-error');
+        const registerError = document.getElementById('register-error');
+
+        function showError(element, message) {
+            element.textContent = message;
+            element.classList.remove('hidden');
+            setTimeout(() => {
+                element.classList.add('hidden');
+            }, 5000);
+        }
+
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            loginError.classList.add('hidden');
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
@@ -91,15 +105,16 @@
                 if (res.success) {
                     window.location.href = 'apps.html';
                 } else {
-                    alert(res.error || 'Erreur de connexion');
+                    showError(loginError, res.error || 'Erreur de connexion');
                 }
             } catch (err) {
-                alert('Erreur serveur');
+                showError(loginError, 'Erreur serveur. Veuillez réessayer plus tard.');
             }
         });
 
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            registerError.classList.add('hidden');
             const name = document.getElementById('reg-name').value;
             const email = document.getElementById('reg-email').value;
             const password = document.getElementById('reg-password').value;
@@ -109,10 +124,10 @@
                 if (res.success) {
                     window.location.href = 'apps.html';
                 } else {
-                    alert(res.error || 'Erreur d\'inscription');
+                    showError(registerError, res.error || 'Erreur d\'inscription');
                 }
             } catch (err) {
-                alert('Erreur serveur');
+                showError(registerError, 'Erreur serveur. Veuillez réessayer plus tard.');
             }
         });
 

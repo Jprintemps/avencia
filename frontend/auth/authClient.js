@@ -45,10 +45,10 @@ const authClient = {
         this.accessToken = null;
         this.user = null;
         localStorage.removeItem('user');
-        // Redirection relative au dossier actuel pour GitHub Pages
-        const path = window.location.pathname;
-        const directory = path.substring(0, path.lastIndexOf('/'));
-        window.location.href = `${directory}/login.html`;
+        // Redirection relative vers index.html
+        const currentPath = window.location.pathname;
+        const isSubfolder = currentPath.includes('/avencia/');
+        window.location.href = isSubfolder ? '/avencia/index.html' : '/index.html';
     },
 
     async refreshToken() {
