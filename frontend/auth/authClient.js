@@ -4,7 +4,7 @@
 const authClient = {
     baseUrl: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://localhost:3001/api' // URL de développement local
-        : 'https://votre-backend-avencia.onrender.com/api', // URL de production Render (à remplacer par l'utilisateur)
+        : 'https://avencia.onrender.com/api', // URL de production Render
     accessToken: null,
     user: null,
 
